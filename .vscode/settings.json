@@ -1,0 +1,4 @@
+{
+    "go.lintTool": "golint",
+    "go.lintOnSave": "off"
+}
