@@ -12,6 +12,7 @@ import (
 	"io"
 	progress "lighttui/components"
 	"lighttui/controllers"
+	"lighttui/infra"
 	"os"
 	"strings"
 
@@ -26,12 +27,14 @@ const (
 )
 
 var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	titleStyle              = lipgloss.NewStyle().MarginLeft(2)
+	itemStyle               = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle       = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	paginationStyle         = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+	helpStyle               = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	quitTextStyle           = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	brightnessCtlController = controllers.NewBrightnessCtlController()
+	nightLightController    = controllers.NewNighLightController()
 )
 
 type model struct {
@@ -82,6 +85,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c":
+			infra.Save(nightLightController.GetCurrent())
 			return m, tea.Quit
 		case "l":
 			if ok {
@@ -121,9 +125,9 @@ func (m model) View() string {
 func main() {
 	choices := []item{
 		{name: "Brightness", progress: progress.New(progress.WithSolidFill("170"),
-			progress.WithFillCharacters('█', '█'), progress.WithEmptyColor("238")), controller: controllers.NewBrightnessCtlController()},
+			progress.WithFillCharacters('█', '█'), progress.WithEmptyColor("238")), controller: brightnessCtlController},
 		{name: "Night Light", progress: progress.New(progress.WithSolidFill("170"),
-			progress.WithFillCharacters('█', '█'), progress.WithEmptyColor("238")), controller: controllers.NewNighLightController()},
+			progress.WithFillCharacters('█', '█'), progress.WithEmptyColor("238")), controller: nightLightController},
 	}
 	l := list.New([]list.Item{
 		choices[0], choices[1],

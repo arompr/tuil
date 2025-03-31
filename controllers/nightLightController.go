@@ -1,102 +1,85 @@
 package controllers
 
 import (
+	"fmt"
+	"lighttui/infra"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 )
 
+const tempFilePath = "~/.local/state/hyprsunset_temp"
+const maxTemperature = 1500
+const minTemperature = 6500
+
 type NightLightController struct {
-	currentTemp    int
-	currentProcess int
+	currentTemp int
 }
 
 func NewNighLightController() *NightLightController {
 	n := &NightLightController{}
-	n.currentProcess = 0
-	n.CalculateCurrent()
+	n.init()
 	return n
+}
+
+func (n *NightLightController) init() {
+	tmp, err := infra.ReadOrInitTemperature()
+	if err != nil {
+		fmt.Print("Something went wrong")
+	}
+	num, _ := strconv.Atoi(tmp)
+	n.currentTemp = num
+
+	// Check for Hyprsunset process
+	cmd := exec.Command("pgrep", "-a", "hyprsunset")
+	output, err := cmd.Output()
+	if err != nil {
+		exec.Command("hyprsunset", "-t", tmp).Start()
+	}
+
+	// Convert output to string and split lines
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	if len(lines) == 0 {
+		exec.Command("hyprsunset", "-t", tmp).Start()
+	}
 }
 
 func (n *NightLightController) GetCurrent() int {
 	return n.currentTemp
 }
 
-func (n *NightLightController) GetMax() int {
-	return 1000
-}
-
-func (n *NightLightController) GetMin() int {
-	return 6500
-}
-
 func (n *NightLightController) GetPercentage() float64 {
 	// Calculate percentage (invert scale)
-	return 1 - (float64(n.GetCurrent()-n.GetMax()) / float64(n.GetMin()-n.GetMax()))
+	return 1 - (float64(n.GetCurrent()-maxTemperature) / float64(minTemperature-maxTemperature))
 }
 
 func (n *NightLightController) IncreasePercentage(value float64) {
 	if n.canIncrease() {
 		// Increase by 1% and round to an integer
-		newTemp := max(int(float64(n.GetCurrent())*float64(1-(value))), n.GetMax())
-
-		// Apply the new temperature using `hyprsunset -t`
-		exec.Command("pkill", "-9", "hyprsunset").Run()
-		cmd2 := exec.Command("hyprsunset", "-t", strconv.Itoa(newTemp))
-		cmd2.Start()
-
-		n.currentTemp = newTemp
+		newTemperature := max(int(float64(n.GetCurrent())*float64(1-(value))), maxTemperature)
+		n.applyNewTemperature(newTemperature)
 	}
 }
 
-// Max value is smaller than Min value (e.g., 1000 is more night light than 6500)
+// Max value is smaller than Min value (e.g., 1500 is more night light than 6500)
 func (n *NightLightController) canIncrease() bool {
-	return n.GetCurrent() > n.GetMax()
+	return n.GetCurrent() > maxTemperature
 }
 
 func (n *NightLightController) DecreasePercentage(value float64) {
 	if n.canDecrease() {
 		// Increase by 1% and round to an integer
-		newTemp := min(int(float64(n.GetCurrent())*float64(1+value)), n.GetMin())
-
-		exec.Command("pkill", "-9", "hyprsunset").Run()
-		cmd2 := exec.Command("hyprsunset", "-t", strconv.Itoa(newTemp))
-		cmd2.Start()
-
-		n.currentTemp = newTemp
+		newTemperature := min(int(float64(n.GetCurrent())*float64(1+value)), minTemperature)
+		n.applyNewTemperature(newTemperature)
 	}
 }
 
-// Min value is bigger than Max value (e.g., 6500 is less night light than 1000)
+// Min value is bigger than Max value (e.g., 6500 is less night light than 1500)
 func (n *NightLightController) canDecrease() bool {
-	return n.GetCurrent() < n.GetMin()
+	return n.GetCurrent() < minTemperature
 }
 
-func (n *NightLightController) CalculateCurrent() {
-	// Run `pgrep -a hyprsunset` to get running instances
-	Ttemp := 4500
-	cmd := exec.Command("pgrep", "-a", "hyprsunset")
-	output, err := cmd.Output()
-	if err != nil {
-		Ttemp = 4500
-	}
-
-	// Convert output to string and split lines
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-
-	// Reverse iterate to check for the last occurrence with `-t <temp>`
-	re := regexp.MustCompile(`-t (\d+)`)
-	for i := len(lines) - 1; i >= 0; i-- {
-		matches := re.FindStringSubmatch(lines[i])
-		if len(matches) > 1 {
-			temp, err := strconv.Atoi(matches[1])
-			if err == nil {
-				Ttemp = temp
-			}
-		}
-	}
-
-	// Default to 4500K if no valid temperature was found
-	n.currentTemp = Ttemp
+func (n *NightLightController) applyNewTemperature(newTemperature int) {
+	exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(newTemperature)).Start()
+	n.currentTemp = newTemperature
 }
