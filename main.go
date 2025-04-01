@@ -33,8 +33,9 @@ var (
 	paginationStyle         = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle               = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	quitTextStyle           = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+	temperatureStore, err   = infra.NewTemperatureStore()
 	brightnessCtlController = controllers.NewBrightnessCtlController()
-	nightLightController    = controllers.NewNighLightController()
+	nightLightController    = controllers.NewNighLightController(temperatureStore)
 )
 
 type model struct {
@@ -85,7 +86,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c":
-			infra.Save(nightLightController.GetCurrent())
+			temperatureStore.Save(nightLightController.GetCurrent())
 			return m, tea.Quit
 		case "l":
 			if ok {
@@ -123,6 +124,7 @@ func (m model) View() string {
 }
 
 func main() {
+
 	choices := []item{
 		{name: "Brightness", progress: progress.New(progress.WithSolidFill("170"),
 			progress.WithFillCharacters('█', '█'), progress.WithEmptyColor("238")), controller: brightnessCtlController},

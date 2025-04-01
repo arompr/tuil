@@ -7,48 +7,78 @@ import (
 	"strconv"
 )
 
-const storeFilePath = "~/.local/state/tuil_store"
+// TemperatureStore handles reading, writing, and storing the current temperature.
+type TemperatureStore struct {
+	filePath           string
+	currentTemperature int
+}
 
-func ReadOrInitTemperature() (string, error) {
-	path := getTemperatureFilePath()
-
-	// Check if file exists
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		// Create file with default value
-		if err := os.WriteFile(path, []byte("6500"), 0644); err != nil {
-			return "", fmt.Errorf("failed to create temp file: %w", err)
-		}
-		return "6500", nil
-	} else if err != nil {
-		return "", fmt.Errorf("error checking file: %w", err)
+// NewTemperatureStore initializes the store, reading the temperature or setting a default.
+func NewTemperatureStore() (*TemperatureStore, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("cannot determine home directory: %w", err)
 	}
 
-	// Read file content
-	data, err := os.ReadFile(path)
+	store := &TemperatureStore{
+		filePath: filepath.Join(homeDir, ".local/state/hyprsunset_temp"),
+	}
+
+	if err := store.initTemperature(); err != nil {
+		return nil, err
+	}
+
+	return store, nil
+}
+
+// initTemperature reads the file or initializes it with a default value.
+func (ts *TemperatureStore) initTemperature() error {
+	_, err := os.Stat(ts.filePath)
+	if os.IsNotExist(err) {
+		return ts.writeTemperature(6500) // Set default value if file doesn't exist
+	} else if err != nil {
+		return fmt.Errorf("error checking temperature file: %w", err)
+	}
+
+	return ts.readTemperature()
+}
+
+// readTemperature reads the temperature from the file and updates currentTemperature.
+func (ts *TemperatureStore) readTemperature() error {
+	data, err := os.ReadFile(ts.filePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to read temp file: %w", err)
+		return fmt.Errorf("failed to read temperature file: %w", err)
 	}
 
 	if len(data) == 0 {
-		// Write default if empty
-		if err := os.WriteFile(path, []byte("6500"), 0644); err != nil {
-			return "", fmt.Errorf("failed to write default value: %w", err)
-		}
-		return "6500", nil
+		return ts.writeTemperature(6500) // Handle empty file by setting default
 	}
 
-	return string(data), nil
-}
-
-func Save(value int) {
-	os.WriteFile(getTemperatureFilePath(), []byte(strconv.Itoa(value)), 0644)
-}
-
-func getTemperatureFilePath() string {
-	homeDir, err := os.UserHomeDir()
+	value, err := strconv.Atoi(string(data))
 	if err != nil {
-		panic("Cannot determine home directory")
+		return fmt.Errorf("invalid temperature value in file: %w", err)
 	}
-	return filepath.Join(homeDir, ".local/state/hyprsunset_temp")
+
+	ts.currentTemperature = value
+	return nil
+}
+
+// writeTemperature updates the file and currentTemperature field.
+func (ts *TemperatureStore) writeTemperature(value int) error {
+	err := os.WriteFile(ts.filePath, []byte(strconv.Itoa(value)), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write temperature file: %w", err)
+	}
+	ts.currentTemperature = value
+	return nil
+}
+
+// GetTemperature returns the current temperature.
+func (ts *TemperatureStore) GetTemperature() int {
+	return ts.currentTemperature
+}
+
+// Save updates the temperature and writes it to the file.
+func (ts *TemperatureStore) Save(value int) error {
+	return ts.writeTemperature(value)
 }
