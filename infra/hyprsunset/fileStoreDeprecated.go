@@ -1,4 +1,4 @@
-package infra
+package hyprsunset
 
 import (
 	"fmt"
@@ -7,20 +7,20 @@ import (
 	"strconv"
 )
 
-// TemperatureStore handles reading, writing, and storing the current temperature.
-type TemperatureStore struct {
+// TemperatureStoreDeprecated handles reading, writing, and storing the current temperature.
+type TemperatureStoreDeprecated struct {
 	filePath           string
 	currentTemperature int
 }
 
 // NewTemperatureStore initializes the store, reading the temperature or setting a default.
-func NewTemperatureStore() (*TemperatureStore, error) {
+func NewTemperatureStore() (*TemperatureStoreDeprecated, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("cannot determine home directory: %w", err)
 	}
 
-	store := &TemperatureStore{
+	store := &TemperatureStoreDeprecated{
 		filePath: filepath.Join(homeDir, ".local/state/hyprsunset_temp"),
 	}
 
@@ -32,7 +32,7 @@ func NewTemperatureStore() (*TemperatureStore, error) {
 }
 
 // initTemperature reads the file or initializes it with a default value.
-func (ts *TemperatureStore) initTemperature() error {
+func (ts *TemperatureStoreDeprecated) initTemperature() error {
 	_, err := os.Stat(ts.filePath)
 	if os.IsNotExist(err) {
 		return ts.writeTemperature(6500) // Set default value if file doesn't exist
@@ -44,7 +44,7 @@ func (ts *TemperatureStore) initTemperature() error {
 }
 
 // readTemperature reads the temperature from the file and updates currentTemperature.
-func (ts *TemperatureStore) readTemperature() error {
+func (ts *TemperatureStoreDeprecated) readTemperature() error {
 	data, err := os.ReadFile(ts.filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read temperature file: %w", err)
@@ -64,7 +64,7 @@ func (ts *TemperatureStore) readTemperature() error {
 }
 
 // writeTemperature updates the file and currentTemperature field.
-func (ts *TemperatureStore) writeTemperature(value int) error {
+func (ts *TemperatureStoreDeprecated) writeTemperature(value int) error {
 	err := os.WriteFile(ts.filePath, []byte(strconv.Itoa(value)), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write temperature file: %w", err)
@@ -74,11 +74,11 @@ func (ts *TemperatureStore) writeTemperature(value int) error {
 }
 
 // GetTemperature returns the current temperature.
-func (ts *TemperatureStore) GetTemperature() int {
+func (ts *TemperatureStoreDeprecated) GetTemperature() int {
 	return ts.currentTemperature
 }
 
 // Save updates the temperature and writes it to the file.
-func (ts *TemperatureStore) Save(value int) error {
+func (ts *TemperatureStoreDeprecated) Save(value int) error {
 	return ts.writeTemperature(value)
 }

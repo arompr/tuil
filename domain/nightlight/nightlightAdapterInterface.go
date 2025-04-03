@@ -1,8 +1,7 @@
-package controllers
+package nightlight
 
-type IController interface {
+type INightLightAdapter interface {
 	GetPercentage() float64
-	GetCurrent() int
 	IncreasePercentage(float64)
 	DecreasePercentage(float64)
 }
