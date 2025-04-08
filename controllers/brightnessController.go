@@ -19,7 +19,6 @@ func NewBrightnessCtlController() *BrightnessController {
 func (b *BrightnessController) GetCurrent() int {
 	cmd := exec.Command("brightnessctl", "get")
 	output, err := cmd.Output()
-
 	if err != nil {
 		return 50
 	}
@@ -35,7 +34,6 @@ func (b *BrightnessController) GetCurrent() int {
 func (b *BrightnessController) GetMax() int {
 	cmd := exec.Command("brightnessctl", "max")
 	output, err := cmd.Output()
-
 	if err != nil {
 		return 50
 	}

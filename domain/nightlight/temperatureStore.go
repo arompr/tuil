@@ -1,8 +1,8 @@
 package nightlight
 
-type ITemperatureStore interface {
-	Save(NightLight) error
-	GetTemperature() NightLight
+type INightLightStore interface {
+	Save(*NightLight) error
+	FetchNightLight() *NightLight
 }
 
 type ITemperatureStoreDeprecated interface {

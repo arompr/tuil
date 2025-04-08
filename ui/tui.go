@@ -108,22 +108,27 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
-func NewTUI(temperatureStore nightlight.ITemperatureStoreDeprecated, brightnessCtl, nightLightCtl controllers.IController) *tea.Program {
+func NewTUI(
+	temperatureStore nightlight.ITemperatureStoreDeprecated,
+	brightnessCtl, nightLightCtl controllers.IController,
+) *tea.Program {
 	choices := []item{
-		{name: "Brightness",
+		{
+			name: "Brightness",
 			progress: progress.New(progress.WithSolidFill("170"),
 				progress.WithFillCharacters('█', '█'),
 				progress.WithEmptyColor("238")),
-			controller: brightnessCtl},
-		{name: "Night Light",
+			controller: brightnessCtl,
+		},
+		{
+			name: "NightLight",
 			progress: progress.New(progress.WithSolidFill("170"),
 				progress.WithFillCharacters('█', '█'),
 				progress.WithEmptyColor("238")),
-			controller: nightLightCtl},
+			controller: nightLightCtl,
+		},
 	}
-	l := list.New([]list.Item{
-		choices[0], choices[1],
-	}, itemDelegate{}, maxWidth, 14)
+	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 8)
 	l.Title = "Adjust Your Settings"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)

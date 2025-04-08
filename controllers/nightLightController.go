@@ -7,15 +7,19 @@ import (
 	"strings"
 )
 
-const maxTemperature = 1500
-const minTemperature = 6500
+const (
+	maxTemperature = 1500
+	minTemperature = 6500
+)
 
 type NightLightController struct {
 	currentTemp      int
 	temperatureStore nightlight.ITemperatureStoreDeprecated
 }
 
-func NewNighLightController(temperatureStore nightlight.ITemperatureStoreDeprecated) *NightLightController {
+func NewNighLightController(
+	temperatureStore nightlight.ITemperatureStoreDeprecated,
+) *NightLightController {
 	n := &NightLightController{
 		temperatureStore: temperatureStore,
 	}
@@ -26,18 +30,17 @@ func NewNighLightController(temperatureStore nightlight.ITemperatureStoreDepreca
 func (n *NightLightController) init() {
 	tmp := n.temperatureStore.GetTemperature()
 	n.currentTemp = tmp
-
 	// Check for Hyprsunset process
 	cmd := exec.Command("pgrep", "-a", "hyprsunset")
 	output, err := cmd.Output()
 	if err != nil {
-		exec.Command("hyprsunset", "-t", string(rune(tmp))).Start()
+		exec.Command("hyprsunset", "-t", strconv.Itoa(tmp)).Start()
 	}
 
 	// Convert output to string and split lines
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	if len(lines) == 0 {
-		exec.Command("hyprsunset", "-t", string(rune(tmp))).Start()
+		exec.Command("hyprsunset", "-t", strconv.Itoa(tmp)).Start()
 	}
 }
 

@@ -1,28 +1,43 @@
 package nightlight
 
-const maxTemperature = 1500
-const minTemperature = 6500
-
 type NightLight struct {
-	value int
+	currentTemperature int
+	max                int
+	min                int
 }
 
-func CreateNewNightLight(value int) *NightLight {
-	return &NightLight{value: value}
+func CreateNewNightLight(value, max, min int) *NightLight {
+	return &NightLight{value, max, min}
 }
 
-func (n *NightLight) Increase(percentage int) {
-	n.setValue(n.calculateNewValue(1-percentage, maxTemperature))
+func (n *NightLight) Increase(percentage float64) {
+	n.applyTemperature(n.calculateNewTemperature(1-percentage, n.GetMax()))
 }
 
-func (n *NightLight) Decrease(percentage int) {
-	n.setValue(n.calculateNewValue(1+percentage, minTemperature))
+func (n *NightLight) Decrease(percentage float64) {
+	n.applyTemperature(n.calculateNewTemperature(1+percentage, n.GetMin()))
 }
 
-func (n *NightLight) setValue(newValue int) {
-	n.value = newValue
+func (n *NightLight) applyTemperature(value int) {
+	n.currentTemperature = value
 }
 
-func (n *NightLight) calculateNewValue(ratio, other int) int {
-	return max(int(float64(n.value)*float64(ratio)), other)
+func (n *NightLight) calculateNewTemperature(ratio float64, other int) int {
+	return max(int(float64(n.GetCurrentTemperature())*ratio), other)
+}
+
+func (n *NightLight) GetPercentage() float64 {
+	return 1 - (float64(n.GetCurrentTemperature()-n.GetMax()) / float64(n.GetMin()-n.GetMax()))
+}
+
+func (n *NightLight) GetCurrentTemperature() int {
+	return n.currentTemperature
+}
+
+func (n *NightLight) GetMax() int {
+	return n.max
+}
+
+func (n *NightLight) GetMin() int {
+	return n.min
 }
