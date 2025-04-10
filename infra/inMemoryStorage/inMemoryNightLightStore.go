@@ -1,4 +1,4 @@
-package store
+package in_memory_storage
 
 import (
 	"lighttui/domain/nightlight"

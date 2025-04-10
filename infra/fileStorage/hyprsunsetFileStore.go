@@ -1,4 +1,4 @@
-package store
+package file_storage
 
 import (
 	"fmt"
