@@ -6,3 +6,9 @@ I run a lightweight Hyprland setup, and while it's incredibly efficient, I found
 tuil fills that gap. It's tailored for Hyprland as it uses hyprsunset for nightlight control.
 
 ![image](https://github.com/user-attachments/assets/5bcd5691-a947-47fe-86e0-cfa7ffe73c9e)
+
+## 🛠️ TODO
+
+- [ ] Cleanup `tui.go` for better structure and readability  
+- [ ] Only initialize `hyprsunsetAdapter` if **Hyprland is installed and running**  
+- [ ] Improve error logging  
