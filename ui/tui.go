@@ -161,7 +161,7 @@ func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
 			getPercentage: getNightLightPercentageUseCase,
 		},
 	}
-	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 8)
+	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 10)
 	l.Title = "Adjust Your Settings"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
