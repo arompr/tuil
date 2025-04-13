@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"lighttui/application/usecase"
-	"lighttui/controllers"
-	"lighttui/domain/nightlight"
 	"lighttui/pkg/progress"
 	"strings"
 
@@ -29,15 +27,16 @@ var (
 )
 
 type model struct {
-	list                 list.Model
-	temperatureStore     nightlight.ITemperatureStoreDeprecated
-	nightLightController controllers.IController
+	list    list.Model
+	persist *usecase.PersistUseCase
 }
 
 type item struct {
-	name       string
-	progress   progress.Model
-	controller controllers.IController
+	name          string
+	progress      progress.Model
+	increase      *usecase.AdjustUseCase
+	decrease      *usecase.AdjustUseCase
+	getPercentage *usecase.GetPercentageUseCase
 }
 
 func (i item) FilterValue() string { return i.name }
@@ -54,7 +53,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	// Format item string with slider
-	progressStr := item.progress.ViewAs(item.controller.GetPercentage())
+	progressStr := item.progress.ViewAs(item.getPercentage.Exec())
 
 	str := fmt.Sprintf("%d. %s %s", index+1, item.name, progressStr)
 
@@ -78,18 +77,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c":
-			m.temperatureStore.Save(m.nightLightController.GetCurrent())
+			// TODO : Add error handling to persist
+			m.persist.Exec()
 			return m, tea.Quit
 		case "l":
 			if ok {
-				item.controller.IncreasePercentage(0.01)
-				cmd := item.progress.SetPercent(item.controller.GetPercentage())
+				item.increase.Exec(0.01)
+				cmd := item.progress.SetPercent(item.getPercentage.Exec())
 				return m, cmd
 			}
 		case "h":
 			if ok {
-				item.controller.DecreasePercentage(0.01)
-				cmd := item.progress.SetPercent(item.controller.GetPercentage())
+				item.decrease.Exec(0.01)
+				cmd := item.progress.SetPercent(item.getPercentage.Exec())
 				return m, cmd
 			}
 		}
@@ -114,21 +114,27 @@ func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
 	getNightLightPercentageUseCase *usecase.GetPercentageUseCase,
 	increaseBrightnessUseCase *usecase.AdjustUseCase,
 	decreaseBrightnessUseCase *usecase.AdjustUseCase,
-	getBrightnessPercentageUseCase *usecase.GetPercentageUseCase) *tea.Program {
+	getBrightnessPercentageUseCase *usecase.GetPercentageUseCase,
+	persistNightLightUseCase *usecase.PersistUseCase,
+) *tea.Program {
 	choices := []item{
 		{
 			name: "Brightness",
 			progress: progress.New(progress.WithSolidFill("170"),
 				progress.WithFillCharacters('█', '█'),
 				progress.WithEmptyColor("238")),
-			controller: brightnessCtl,
+			increase:      increaseBrightnessUseCase,
+			decrease:      decreaseBrightnessUseCase,
+			getPercentage: getBrightnessPercentageUseCase,
 		},
 		{
 			name: "NightLight",
 			progress: progress.New(progress.WithSolidFill("170"),
 				progress.WithFillCharacters('█', '█'),
 				progress.WithEmptyColor("238")),
-			controller: nightLightCtl,
+			increase:      increaseNightLightUseCase,
+			decrease:      decreaseNightLightUseCase,
+			getPercentage: getNightLightPercentageUseCase,
 		},
 	}
 	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 8)
@@ -140,9 +146,8 @@ func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
 	l.Styles.HelpStyle = helpStyle
 
 	m := model{
-		list:                 l,
-		temperatureStore:     temperatureStore,
-		nightLightController: nightLightCtl,
+		list:    l,
+		persist: persistNightLightUseCase,
 	}
 
 	return tea.NewProgram(m)

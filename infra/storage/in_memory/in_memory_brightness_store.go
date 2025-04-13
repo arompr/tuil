@@ -16,7 +16,6 @@ func (s *InMemoryBrightnessStore) Fetch() adjustable.IAdjustable {
 	return s.brightness
 }
 
-func (s *InMemoryBrightnessStore) Save(adjustable adjustable.IAdjustable) error {
+func (s *InMemoryBrightnessStore) Save(adjustable adjustable.IAdjustable) {
 	s.brightness = adjustable
-	return nil
 }

@@ -2,34 +2,39 @@ package main
 
 import (
 	"fmt"
-	service "lighttui/application"
 	"lighttui/application/usecase"
-	"lighttui/controllers"
 	"lighttui/domain/brightness"
 	"lighttui/infra/brightnessctl"
 	"lighttui/infra/hyprsunset"
 	file_storage "lighttui/infra/storage/file"
 	in_memory_storage "lighttui/infra/storage/in_memory"
 	"lighttui/ui"
-	"lighttui/ui/deprecated"
 	"os"
+	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
 	// Initialize dependencies DEP
-	temperatureStore, err := hyprsunset.NewTemperatureStore()
+	// temperatureStore, err := hyprsunset.NewTemperatureStore()
+	// if err != nil {
+	// 	fmt.Println("Failed to initialize temperature store:", err)
+	// 	os.Exit(1)
+	// }
+
+	// brightnessCtl := controllers.NewBrightnessCtlController()
+	// nightLightCtl := controllers.NewNighLightController(temperatureStore)
+
+	// Start TUI
+	//tui := deprecated.NewTUIDeprecated(temperatureStore, brightnessCtl, nightLightCtl)
+	tui, err := InitDep()
+
 	if err != nil {
 		fmt.Println("Failed to initialize temperature store:", err)
 		os.Exit(1)
 	}
 
-	brightnessCtl := controllers.NewBrightnessCtlController()
-	nightLightCtl := controllers.NewNighLightController(temperatureStore)
-
-	// Start TUI
-	tui := deprecated.NewTUIDeprecated(temperatureStore, brightnessCtl, nightLightCtl)
 	if _, err := tui.Run(); err != nil {
 		fmt.Println("Oh no!", err)
 		os.Exit(1)
@@ -37,13 +42,18 @@ func main() {
 }
 
 func InitDep() (*tea.Program, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("cannot determine home directory: %w", err)
+	}
+
 	// Initialise dependencies
-	fileNightLightStore, err := file_storage.NewHyprsunsetFileStore("sd")
+	fileNightLightStore, err := file_storage.NewHyprsunsetFileStore(filepath.Join(homeDir, ".local/state/hyprsunset_temp"))
 	if err != nil {
 		return nil, err
 	}
 
-	nightlight, err := fileNightLightStore.FetchNightLight()
+	nightlight, err := fileNightLightStore.Fetch()
 	if err != nil {
 		return nil, err
 	}
@@ -51,8 +61,6 @@ func InitDep() (*tea.Program, error) {
 	inMemoryNightLightStore.Save(nightlight)
 
 	hyprsunsetAdapter := hyprsunset.NewNighLightAdapter(inMemoryNightLightStore)
-	service.NewNightLightService(inMemoryNightLightStore, hyprsunsetAdapter)
-
 	brightnessctlAdapter := brightnessctl.NewBrightnessCtlAdapter()
 	currentBrightness, err := brightnessctlAdapter.GetCurrentBrightnessValue()
 	if err != nil {
@@ -73,6 +81,7 @@ func InitDep() (*tea.Program, error) {
 	increaseBrightnessUseCase := usecase.NewIncreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	decreaseBrightnessUseCase := usecase.NewDecreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	getBrightnessPercentageUseCase := usecase.NewGetPercentageUseCase(inMemoryBrightessStore)
+	persistNightLightUseCase := usecase.NewPersistUseCase(fileNightLightStore, inMemoryNightLightStore)
 
 	return ui.NewTUI(
 		increaseNightLightUseCase,
@@ -81,5 +90,6 @@ func InitDep() (*tea.Program, error) {
 		increaseBrightnessUseCase,
 		decreaseBrightnessUseCase,
 		getBrightnessPercentageUseCase,
+		persistNightLightUseCase,
 	), nil
 }

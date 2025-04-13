@@ -2,6 +2,7 @@ package file_storage
 
 import (
 	"fmt"
+	"lighttui/domain/adjustable"
 	"lighttui/domain/nightlight"
 	"os"
 	"strconv"
@@ -33,7 +34,7 @@ func (f *FileNightLightStore) initFileStore() error {
 	return nil
 }
 
-func (f *FileNightLightStore) FetchNightLight() (*nightlight.NightLight, error) {
+func (f *FileNightLightStore) Fetch() (adjustable.IAdjustable, error) {
 	temperature, err := f.readTemperature()
 
 	if err != nil {
@@ -63,8 +64,8 @@ func (f *FileNightLightStore) readTemperature() (int, error) {
 	return temperature, nil
 }
 
-func (f *FileNightLightStore) Save(nightlight *nightlight.NightLight) error {
-	if err := f.writeToFile(nightlight.GetCurrentValue()); err != nil {
+func (f *FileNightLightStore) Save(adjustable adjustable.IAdjustable) error {
+	if err := f.writeToFile(adjustable.GetCurrentValue()); err != nil {
 		return fmt.Errorf("failed to write temperature file: %w", err)
 	}
 	return nil

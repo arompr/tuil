@@ -17,7 +17,6 @@ func (s *InMemoryNightLightStore) Fetch() adjustable.IAdjustable {
 }
 
 // Save stores the NightLight in memory. Always returns nil.
-func (s *InMemoryNightLightStore) Save(adjustable adjustable.IAdjustable) error {
+func (s *InMemoryNightLightStore) Save(adjustable adjustable.IAdjustable) {
 	s.nightlight = adjustable
-	return nil
 }

@@ -12,6 +12,6 @@ func NewGetPercentageUseCase(store adjustable.IAdjustableStore) *GetPercentageUs
 	return &GetPercentageUseCase{store}
 }
 
-func (g *GetPercentageUseCase) GetPercentage() float64 {
+func (g *GetPercentageUseCase) Exec() float64 {
 	return g.store.Fetch().GetPercentage()
 }
