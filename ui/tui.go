@@ -53,7 +53,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	// Format item string with slider
 	progressStr := item.progress.ViewAs(item.getPercentage.Exec())
 
 	str := fmt.Sprintf("%d. %s %s", index+1, item.name, progressStr)
