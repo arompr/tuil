@@ -16,22 +16,9 @@ import (
 )
 
 func main() {
-	// Initialize dependencies DEP
-	// temperatureStore, err := hyprsunset.NewTemperatureStore()
-	// if err != nil {
-	// 	fmt.Println("Failed to initialize temperature store:", err)
-	// 	os.Exit(1)
-	// }
-
-	// brightnessCtl := controllers.NewBrightnessCtlController()
-	// nightLightCtl := controllers.NewNighLightController(temperatureStore)
-
-	// Start TUI
-	//tui := deprecated.NewTUIDeprecated(temperatureStore, brightnessCtl, nightLightCtl)
-	tui, err := InitDep()
-
+	tui, err := initTuil()
 	if err != nil {
-		fmt.Println("Failed to initialize temperature store:", err)
+		fmt.Println("Failed to initialize tuil: ", err)
 		os.Exit(1)
 	}
 
@@ -41,14 +28,14 @@ func main() {
 	}
 }
 
-func InitDep() (*tea.Program, error) {
+func initTuil() (*tea.Program, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("cannot determine home directory: %w", err)
 	}
 
 	// Initialise dependencies
-	fileNightLightStore, err := file_storage.NewHyprsunsetFileStore(filepath.Join(homeDir, ".local/state/hyprsunset_temp"))
+	fileNightLightStore, err := file_storage.NewHyprsunsetFileStore(filepath.Join(homeDir, ".local/state/tuil/nightlight_temp"))
 	if err != nil {
 		return nil, err
 	}

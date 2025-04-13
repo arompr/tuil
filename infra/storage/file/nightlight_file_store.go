@@ -5,12 +5,13 @@ import (
 	"lighttui/domain/adjustable"
 	"lighttui/domain/nightlight"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
 // FileNightLightStore handles reading, and storing the current hyprsunset temperature.
 type FileNightLightStore struct {
-	filePath string
+	path string
 }
 
 // NewTemperatureStore initializes the store, reading the temperature or setting a default.
@@ -20,9 +21,16 @@ func NewHyprsunsetFileStore(filePath string) (*FileNightLightStore, error) {
 	return f, err
 }
 
-// initFileStore reads the night light temperature file or initializes it with a default value.
+// Reads the night light temperature file or initializes it with the min default value.
 func (f *FileNightLightStore) initFileStore() error {
-	_, err := os.Stat(f.filePath)
+	dir := filepath.Dir(f.path)
+
+	// Create all necessary directories if they don't exist
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directories for night light store: %w", err)
+	}
+
+	_, err := os.Stat(f.path)
 	if os.IsNotExist(err) {
 		return f.writeToFile(nightlight.MinTemperature)
 	}
@@ -46,7 +54,7 @@ func (f *FileNightLightStore) Fetch() (adjustable.IAdjustable, error) {
 
 // readTemperature reads the night light temperature from the file or sets it's value if file is empty.
 func (f *FileNightLightStore) readTemperature() (int, error) {
-	data, err := os.ReadFile(f.filePath)
+	data, err := os.ReadFile(f.path)
 	if err != nil {
 		return nightlight.MinTemperature, fmt.Errorf("failed to read file: %w", err)
 	}
@@ -72,5 +80,5 @@ func (f *FileNightLightStore) Save(adjustable adjustable.IAdjustable) error {
 }
 
 func (f *FileNightLightStore) writeToFile(value int) error {
-	return os.WriteFile(f.filePath, []byte(strconv.Itoa(value)), 0644)
+	return os.WriteFile(f.path, []byte(strconv.Itoa(value)), 0644)
 }
