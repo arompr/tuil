@@ -9,6 +9,7 @@ tuil fills that gap. It's tailored for Hyprland as it uses hyprsunset for nightl
 
 ## 🛠️ TODO
 
-- [ ] Cleanup `tui.go` for better structure and readability  
+- [ ] Cleanup `tui.go` for better structure and readability
+- [ ] Fix ui pagination once show more is toggled then toggled off
 - [ ] Only initialize `hyprsunsetAdapter` if **Hyprland is installed and running**  
 - [ ] Improve error logging  

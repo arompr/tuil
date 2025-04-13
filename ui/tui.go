@@ -98,9 +98,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd := item.progress.SetPercent(item.getPercentage.Exec())
 				return m, cmd
 			}
+		case "L":
+			if ok {
+				item.increase.Exec(0.1)
+				cmd := item.progress.SetPercent(item.getPercentage.Exec())
+				return m, cmd
+			}
 		case "h":
 			if ok {
 				item.decrease.Exec(0.01)
+				cmd := item.progress.SetPercent(item.getPercentage.Exec())
+				return m, cmd
+			}
+		case "H":
+			if ok {
+				item.decrease.Exec(0.1)
 				cmd := item.progress.SetPercent(item.getPercentage.Exec())
 				return m, cmd
 			}
@@ -149,7 +161,7 @@ func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
 			getPercentage: getNightLightPercentageUseCase,
 		},
 	}
-	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 10)
+	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 8)
 	l.Title = "Adjust Your Settings"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)

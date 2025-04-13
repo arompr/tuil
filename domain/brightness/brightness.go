@@ -29,7 +29,11 @@ func (b *Brightness) applyBrightness(value int) {
 }
 
 func (b *Brightness) GetPercentage() float64 {
-	return float64(b.currentBrightness) / float64(b.GetMax())
+	if b.GetCurrentValue() == 1 {
+		return 0.01
+	}
+
+	return float64(b.GetCurrentValue()) / float64(b.GetMax())
 }
 
 func (b *Brightness) GetCurrentValue() int {
