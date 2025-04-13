@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 	"lighttui/application/usecase"
-	"lighttui/pkg/progress"
+	"lighttui/ui/progress"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -80,6 +81,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// TODO : Add error handling to persist
 			m.persist.Exec()
 			return m, tea.Quit
+		case "j":
+			if m.list.Index() >= m.list.Paginator.ItemsOnPage(len(m.list.VisibleItems())-1) {
+				m.list.CursorUp()
+			} else {
+				m.list.CursorDown()
+			}
+		case "k":
+			if m.list.Index() == 0 {
+				m.list.CursorDown()
+			} else {
+				m.list.CursorUp()
+			}
 		case "l":
 			if ok {
 				item.increase.Exec(0.01)
@@ -137,13 +150,74 @@ func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
 			getPercentage: getNightLightPercentageUseCase,
 		},
 	}
-	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 8)
+	l := list.New([]list.Item{choices[0], choices[1]}, itemDelegate{}, maxWidth, 10)
 	l.Title = "Adjust Your Settings"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
+
+	var myKeyMap = struct {
+		Up        key.Binding
+		Down      key.Binding
+		Increase  key.Binding
+		Decrease  key.Binding
+		Increase2 key.Binding
+		Decrease2 key.Binding
+	}{
+		Up: key.NewBinding(
+			key.WithKeys("k"),
+			key.WithHelp("k", "Up"),
+		),
+		Down: key.NewBinding(
+			key.WithKeys("j"),
+			key.WithHelp("j", "Down"),
+		),
+		Increase: key.NewBinding(
+			key.WithKeys("l"),
+			key.WithHelp("l", "Increase"),
+		),
+		Decrease: key.NewBinding(
+			key.WithKeys("h"),
+			key.WithHelp("h", "Decrease"),
+		),
+		Increase2: key.NewBinding(
+			key.WithKeys("<S-l>"),
+			key.WithHelp("<S-l>", "Increase more"),
+		),
+		Decrease2: key.NewBinding(
+			key.WithKeys("<S-h>"),
+			key.WithHelp("<S-h>", "Decrease more"),
+		),
+	}
+
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			myKeyMap.Up,
+			myKeyMap.Down,
+			myKeyMap.Increase,
+			myKeyMap.Decrease,
+		}
+	}
+
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			myKeyMap.Up,
+			myKeyMap.Down,
+			myKeyMap.Increase,
+			myKeyMap.Decrease,
+			myKeyMap.Increase2,
+			myKeyMap.Decrease2,
+		}
+	}
+
+	l.KeyMap.PrevPage.SetEnabled(false)
+	l.KeyMap.NextPage.SetEnabled(false)
+	l.KeyMap.GoToStart.SetEnabled(false)
+	l.KeyMap.GoToEnd.SetEnabled(false)
+	l.KeyMap.CursorDown.SetEnabled(false)
+	l.KeyMap.CursorUp.SetEnabled(false)
 
 	m := model{
 		list:    l,
