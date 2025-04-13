@@ -1,4 +1,4 @@
-# 🌙 tuil
+# 🌙 tuil - A Work in progress -
 A Terminal UI for Brightness & Night Light Control to manually adjust screen brightness and night light right from your terminal.
 
 I run a lightweight Hyprland setup, and while it's incredibly efficient, I found myself missing a user-friendly and quick way to tweak brightness and night light manually without leaving terminal.
