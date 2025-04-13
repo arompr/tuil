@@ -2,7 +2,7 @@ package nightlight
 
 type INightLightStore interface {
 	Save(*NightLight) error
-	FetchNightLight() *NightLight
+	Fetch() *NightLight
 }
 
 type ITemperatureStoreDeprecated interface {

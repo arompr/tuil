@@ -35,9 +35,9 @@ func TestNightLight_Increase(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			nl := CreateNewNightLight(tt.initialTemp, 1500, 6500)
+			nl := CreateNewNightLight(tt.initialTemp)
 			nl.Increase(tt.percentage)
-			assert.Equal(t, tt.expectedTemperature, nl.GetCurrentTemperature())
+			assert.Equal(t, tt.expectedTemperature, nl.GetCurrentValue())
 		})
 	}
 }
@@ -77,9 +77,9 @@ func TestNightLight_Decrease(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			nl := CreateNewNightLight(tt.initialTemp, 1500, 6500)
+			nl := CreateNewNightLight(tt.initialTemp)
 			nl.Decrease(tt.percentage)
-			assert.Equal(t, tt.expectedTemperature, nl.GetCurrentTemperature())
+			assert.Equal(t, tt.expectedTemperature, nl.GetCurrentValue())
 		})
 	}
 }

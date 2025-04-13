@@ -1,9 +1,8 @@
-package ui
+package deprecated
 
 import (
 	"fmt"
 	"io"
-	"lighttui/application/usecase"
 	"lighttui/controllers"
 	"lighttui/domain/nightlight"
 	"lighttui/pkg/progress"
@@ -109,12 +108,10 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
-func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
-	decreaseNightLightUseCase *usecase.AdjustUseCase,
-	getNightLightPercentageUseCase *usecase.GetPercentageUseCase,
-	increaseBrightnessUseCase *usecase.AdjustUseCase,
-	decreaseBrightnessUseCase *usecase.AdjustUseCase,
-	getBrightnessPercentageUseCase *usecase.GetPercentageUseCase) *tea.Program {
+func NewTUIDeprecated(
+	temperatureStore nightlight.ITemperatureStoreDeprecated,
+	brightnessCtl, nightLightCtl controllers.IController,
+) *tea.Program {
 	choices := []item{
 		{
 			name: "Brightness",

@@ -18,10 +18,10 @@ func TestIncreaseBrightness(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := brightness.CreateNewNightLight(tt.initial, 100, 0)
+			b := brightness.CreateNewBrightness(tt.initial, 100)
 			b.Increase(tt.percent)
-			if b.GetCurrentBrightness() != tt.expected {
-				t.Errorf("got %d, want %d", b.GetCurrentBrightness(), tt.expected)
+			if b.GetCurrentValue() != tt.expected {
+				t.Errorf("got %d, want %d", b.GetCurrentValue(), tt.expected)
 			}
 		})
 	}
@@ -40,17 +40,17 @@ func TestDecreaseBrightness(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := brightness.CreateNewNightLight(tt.initial, 100, 1)
+			b := brightness.CreateNewBrightness(tt.initial, 100)
 			b.Decrease(tt.percent)
-			if b.GetCurrentBrightness() != tt.expected {
-				t.Errorf("got %d, want %d", b.GetCurrentBrightness(), tt.expected)
+			if b.GetCurrentValue() != tt.expected {
+				t.Errorf("got %d, want %d", b.GetCurrentValue(), tt.expected)
 			}
 		})
 	}
 }
 
 func TestGetPercentage(t *testing.T) {
-	b := brightness.CreateNewNightLight(25, 100, 0)
+	b := brightness.CreateNewBrightness(25, 100)
 	expected := 0.25
 	actual := b.GetPercentage()
 	if actual != expected {

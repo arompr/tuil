@@ -29,7 +29,7 @@ func (s *BrightnessService) Decrease(percentage float64) error {
 }
 
 func (s *BrightnessService) applyNightLight(brightness *brightness.Brightness) error {
-	if err := s.gateway.ApplyBrightness(brightness); err != nil {
+	if err := s.gateway.ApplyValue(brightness); err != nil {
 		return err
 	}
 

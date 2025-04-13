@@ -1,7 +1,7 @@
-package controllers
+package brightnessctl
 
 import (
-	"lighttui/domain/brightness"
+	"lighttui/domain/adjustable"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -9,9 +9,8 @@ import (
 
 type BrightnessCtlAdapter struct{}
 
-func NewBrightnessCtlController() *BrightnessCtlAdapter {
-	b := &BrightnessCtlAdapter{}
-	return b
+func NewBrightnessCtlAdapter() *BrightnessCtlAdapter {
+	return &BrightnessCtlAdapter{}
 }
 
 func (b *BrightnessCtlAdapter) GetCurrentBrightnessValue() (int, error) {
@@ -34,6 +33,6 @@ func (b *BrightnessCtlAdapter) GetMaxBrightnessValue() (int, error) {
 	return strconv.Atoi(strings.TrimSpace(string(output)))
 }
 
-func (b *BrightnessCtlAdapter) ApplyBrightness(brightness *brightness.Brightness) error {
-	return exec.Command("brightnessctl", "set", strconv.Itoa(brightness.GetCurrentBrightness())).Start()
+func (b *BrightnessCtlAdapter) ApplyValue(adjustable adjustable.IAdjustable) error {
+	return exec.Command("brightnessctl", "set", strconv.Itoa(adjustable.GetCurrentValue())).Start()
 }

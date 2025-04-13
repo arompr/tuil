@@ -12,9 +12,6 @@ type FileNightLightStore struct {
 	filePath string
 }
 
-const maxTemperature = 1500
-const minTemperature = 6500
-
 // NewTemperatureStore initializes the store, reading the temperature or setting a default.
 func NewHyprsunsetFileStore(filePath string) (*FileNightLightStore, error) {
 	f := &FileNightLightStore{filePath}
@@ -26,7 +23,7 @@ func NewHyprsunsetFileStore(filePath string) (*FileNightLightStore, error) {
 func (f *FileNightLightStore) initFileStore() error {
 	_, err := os.Stat(f.filePath)
 	if os.IsNotExist(err) {
-		return f.writeToFile(minTemperature)
+		return f.writeToFile(nightlight.MinTemperature)
 	}
 
 	if err != nil {
@@ -43,31 +40,31 @@ func (f *FileNightLightStore) FetchNightLight() (*nightlight.NightLight, error) 
 		return nil, fmt.Errorf("error fetching night light from file")
 	}
 
-	return nightlight.CreateNewNightLight(temperature, maxTemperature, minTemperature), nil
+	return nightlight.CreateNewNightLight(temperature), nil
 }
 
 // readTemperature reads the night light temperature from the file or sets it's value if file is empty.
 func (f *FileNightLightStore) readTemperature() (int, error) {
 	data, err := os.ReadFile(f.filePath)
 	if err != nil {
-		return minTemperature, fmt.Errorf("failed to read file: %w", err)
+		return nightlight.MinTemperature, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	// Handle empty file by setting default
 	if len(data) == 0 {
-		return minTemperature, f.writeToFile(minTemperature)
+		return nightlight.MinTemperature, f.writeToFile(nightlight.MinTemperature)
 	}
 
 	temperature, err := strconv.Atoi(string(data))
 	if err != nil {
-		return minTemperature, fmt.Errorf("invalid night light value in file: %w", err)
+		return nightlight.MinTemperature, fmt.Errorf("invalid night light value in file: %w", err)
 	}
 
 	return temperature, nil
 }
 
 func (f *FileNightLightStore) Save(nightlight *nightlight.NightLight) error {
-	if err := f.writeToFile(nightlight.GetCurrentTemperature()); err != nil {
+	if err := f.writeToFile(nightlight.GetCurrentValue()); err != nil {
 		return fmt.Errorf("failed to write temperature file: %w", err)
 	}
 	return nil

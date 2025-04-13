@@ -1,35 +1,36 @@
 package service
 
 import (
+	"lighttui/domain/adjustable"
 	"lighttui/domain/nightlight"
 )
 
 type NightLightService struct {
-	store   nightlight.INightLightStore
+	store   adjustable.IAdjustableStore
 	gateway nightlight.INightLightAdapter
 }
 
 func NewNightLightService(
-	store nightlight.INightLightStore,
+	store adjustable.IAdjustableStore,
 	gateway nightlight.INightLightAdapter,
 ) *NightLightService {
 	return &NightLightService{store, gateway}
 }
 
 func (s *NightLightService) Increase(percentage float64) error {
-	nightlight := s.store.FetchNightLight()
+	nightlight := s.store.Fetch()
 	nightlight.Increase(percentage)
 	return s.applyNightLight(nightlight)
 }
 
 func (s *NightLightService) Decrease(percentage float64) error {
-	nightlight := s.store.FetchNightLight()
+	nightlight := s.store.Fetch()
 	nightlight.Decrease(percentage)
 	return s.applyNightLight(nightlight)
 }
 
-func (s *NightLightService) applyNightLight(nightlight *nightlight.NightLight) error {
-	if err := s.gateway.ApplyNightLight(nightlight); err != nil {
+func (s *NightLightService) applyNightLight(nightlight adjustable.IAdjustable) error {
+	if err := s.gateway.ApplyValue(nightlight); err != nil {
 		return err
 	}
 

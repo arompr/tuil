@@ -1,6 +1,6 @@
 package brightness
 
 type IBrightnessStore interface {
-	Save(*Brightness) error
+	Save(*Brightness)
 	FetchBrightness() *Brightness
 }
