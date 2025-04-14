@@ -10,5 +10,6 @@ Tuil fills that gap. While it's tailored for Hyprland via hyprsunset for nightli
 ## 🛠️ TODO
 
 - [ ] Cleanup `tui.go` for better structure and readability
+- [ ] Improve "cleanness" of store caching
 - [ ] Only initialize `hyprsunsetAdapter` if **Hyprland is installed and running**  
 - [ ] Improve error logging  
