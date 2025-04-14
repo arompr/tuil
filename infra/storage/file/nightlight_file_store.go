@@ -3,7 +3,7 @@ package file_storage
 import (
 	"fmt"
 	"lighttui/domain/adjustable"
-	"lighttui/domain/nightlight"
+	"lighttui/domain/adjustable/nightlight"
 	"os"
 	"path/filepath"
 	"strconv"

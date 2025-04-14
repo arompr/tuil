@@ -5,17 +5,22 @@ import (
 )
 
 type PersistUseCase struct {
-	persistantStore adjustable.IPersistentAdjustableStore
-	store           adjustable.IAdjustableStore
+	cacheStore      adjustable.IAdjustableStore
+	persistentStore adjustable.IAdjustableStore
 }
 
 func NewPersistUseCase(
-	persistantStore adjustable.IPersistentAdjustableStore,
-	store adjustable.IAdjustableStore,
+	cacheStore adjustable.IAdjustableStore,
+	persistentStore adjustable.IAdjustableStore,
 ) *PersistUseCase {
-	return &PersistUseCase{persistantStore, store}
+	return &PersistUseCase{cacheStore, persistentStore}
 }
 
 func (p *PersistUseCase) Exec() error {
-	return p.persistantStore.Save(p.store.Fetch())
+	adjustable, err := p.cacheStore.Fetch()
+	if err != nil {
+		return err
+	}
+
+	return p.persistentStore.Save(adjustable)
 }

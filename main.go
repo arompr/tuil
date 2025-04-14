@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"lighttui/application/usecase"
-	"lighttui/domain/brightness"
+	"lighttui/domain/adjustable/brightness"
 	"lighttui/infra/brightnessctl"
 	"lighttui/infra/hyprsunset"
+	cached_storage "lighttui/infra/storage/cache"
 	file_storage "lighttui/infra/storage/file"
 	in_memory_storage "lighttui/infra/storage/in_memory"
 	"lighttui/ui"
@@ -40,14 +41,14 @@ func initTuil() (*tea.Program, error) {
 		return nil, err
 	}
 
-	nightlight, err := fileNightLightStore.Fetch()
+	inMemoryNightLightStore := in_memory_storage.NewInMemoryNightLightStore()
+	cachedNightLightStore := cached_storage.NewCachedNightLightStore(inMemoryNightLightStore, fileNightLightStore)
+
+	hyprsunsetAdapter, err := hyprsunset.NewNighLightAdapter(inMemoryNightLightStore)
 	if err != nil {
 		return nil, err
 	}
-	inMemoryNightLightStore := in_memory_storage.NewInMemoryNightLightStore()
-	inMemoryNightLightStore.Save(nightlight)
 
-	hyprsunsetAdapter := hyprsunset.NewNighLightAdapter(inMemoryNightLightStore)
 	brightnessctlAdapter := brightnessctl.NewBrightnessCtlAdapter()
 	currentBrightness, err := brightnessctlAdapter.GetCurrentBrightnessValue()
 	if err != nil {
@@ -62,13 +63,13 @@ func initTuil() (*tea.Program, error) {
 	inMemoryBrightessStore := in_memory_storage.NewInMemoryBrightnessStore()
 	inMemoryBrightessStore.Save(brightness.CreateNewBrightness(currentBrightness, maxBrightness))
 
-	increaseNightLightUseCase := usecase.NewIncreaseUseCase(inMemoryNightLightStore, hyprsunsetAdapter)
-	decreaseNightLightUseCase := usecase.NewDecreaseUseCase(inMemoryNightLightStore, hyprsunsetAdapter)
-	getNightLightPercentageUseCase := usecase.NewGetPercentageUseCase(inMemoryNightLightStore)
+	increaseNightLightUseCase := usecase.NewIncreaseUseCase(cachedNightLightStore, hyprsunsetAdapter)
+	decreaseNightLightUseCase := usecase.NewDecreaseUseCase(cachedNightLightStore, hyprsunsetAdapter)
+	getNightLightPercentageUseCase := usecase.NewGetPercentageUseCase(cachedNightLightStore)
 	increaseBrightnessUseCase := usecase.NewIncreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	decreaseBrightnessUseCase := usecase.NewDecreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	getBrightnessPercentageUseCase := usecase.NewGetPercentageUseCase(inMemoryBrightessStore)
-	persistNightLightUseCase := usecase.NewPersistUseCase(fileNightLightStore, inMemoryNightLightStore)
+	persistNightLightUseCase := usecase.NewPersistUseCase(cachedNightLightStore, fileNightLightStore)
 
 	return ui.NewTUI(
 		increaseNightLightUseCase,

@@ -5,6 +5,7 @@ import (
 	"io"
 	"lighttui/application/usecase"
 	"lighttui/ui/progress"
+	"log"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -53,7 +54,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	progressStr := item.progress.ViewAs(item.getPercentage.Exec())
+	progressStr := item.progress.ViewAs(getPercentage(item))
 
 	str := fmt.Sprintf("%d. %s %s", index+1, item.name, progressStr)
 
@@ -95,25 +96,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "l":
 			if ok {
 				item.increase.Exec(0.01)
-				cmd := item.progress.SetPercent(item.getPercentage.Exec())
+				cmd := item.progress.SetPercent(getPercentage(item))
 				return m, cmd
 			}
 		case "L":
 			if ok {
 				item.increase.Exec(0.1)
-				cmd := item.progress.SetPercent(item.getPercentage.Exec())
+				cmd := item.progress.SetPercent(getPercentage(item))
 				return m, cmd
 			}
 		case "h":
 			if ok {
 				item.decrease.Exec(0.01)
-				cmd := item.progress.SetPercent(item.getPercentage.Exec())
+				cmd := item.progress.SetPercent(getPercentage(item))
 				return m, cmd
 			}
 		case "H":
 			if ok {
 				item.decrease.Exec(0.1)
-				cmd := item.progress.SetPercent(item.getPercentage.Exec())
+				cmd := item.progress.SetPercent(getPercentage(item))
 				return m, cmd
 			}
 		}
@@ -127,6 +128,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
+}
+
+func getPercentage(item item) float64 {
+	percentage, err := item.getPercentage.Exec()
+	if err != nil {
+		log.Println(err)
+	}
+	return percentage
 }
 
 func (m model) View() string {

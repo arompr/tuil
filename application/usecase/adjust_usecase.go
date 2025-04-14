@@ -33,7 +33,7 @@ func increase(i adjustable.IAdjustable, percentage float64) {
 }
 
 func (i *AdjustUseCase) Exec(percentage float64) error {
-	adjustable := i.store.Fetch()
+	adjustable, _ := i.store.Fetch()
 	i.adjust(adjustable, percentage)
 
 	if err := i.adapter.ApplyValue(adjustable); err != nil {

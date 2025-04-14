@@ -14,14 +14,17 @@ type HyprsunsetAdapter struct {
 	store adjustable.IAdjustableStore
 }
 
-func NewNighLightAdapter(store adjustable.IAdjustableStore) *HyprsunsetAdapter {
+func NewNighLightAdapter(store adjustable.IAdjustableStore) (*HyprsunsetAdapter, error) {
 	n := &HyprsunsetAdapter{store}
-	n.init()
-	return n
+	err := n.init()
+	return n, err
 }
 
-func (n *HyprsunsetAdapter) init() {
-	nightlight := n.store.Fetch()
+func (n *HyprsunsetAdapter) init() error {
+	nightlight, err := n.store.Fetch()
+	if err != nil {
+		return err
+	}
 
 	// Check for Hyprsunset process
 	output, err := exec.Command("pgrep", "-a", "hyprsunset").Output()
@@ -34,6 +37,8 @@ func (n *HyprsunsetAdapter) init() {
 	if len(lines) == 0 {
 		startHyprsunset(nightlight.GetCurrentValue())
 	}
+
+	return nil
 }
 
 func startHyprsunset(temperature int) {
