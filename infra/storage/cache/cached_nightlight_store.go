@@ -1,28 +1,37 @@
 package cached_storage
 
-import "lighttui/domain/adjustable"
+import (
+	"lighttui/domain/adjustable"
+)
 
 type CachedNightLightStore struct {
-	inMemoryStore adjustable.IAdjustableStore
-	store         adjustable.IAdjustableStore
+	cache *AdjustableCache
+	store adjustable.IAdjustableStore
 }
 
 func NewCachedNightLightStore(
-	inMemoryStore adjustable.IAdjustableStore,
+	cache *AdjustableCache,
 	store adjustable.IAdjustableStore,
 ) *CachedNightLightStore {
-	return &CachedNightLightStore{inMemoryStore, store}
+	return &CachedNightLightStore{cache, store}
 }
 
 func (c *CachedNightLightStore) Fetch() (adjustable.IAdjustable, error) {
-	cached, _ := c.inMemoryStore.Fetch()
+	cached := c.cache.Fetch()
 	if cached != nil {
 		return cached, nil
 	}
 
-	return c.store.Fetch()
+	adjustable, err := c.store.Fetch()
+	if err != nil {
+		return nil, err
+	}
+
+	c.cache.Save(adjustable)
+	return adjustable, nil
 }
 
 func (c *CachedNightLightStore) Save(adjustable adjustable.IAdjustable) error {
-	return c.inMemoryStore.Save(adjustable)
+	c.cache.Save(adjustable)
+	return nil
 }

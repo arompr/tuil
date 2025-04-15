@@ -1,7 +1,7 @@
 package brightness_test
 
 import (
-	"lighttui/domain/brightness"
+	"lighttui/domain/adjustable/brightness"
 	"testing"
 )
 

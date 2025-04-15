@@ -41,10 +41,10 @@ func initTuil() (*tea.Program, error) {
 		return nil, err
 	}
 
-	inMemoryNightLightStore := in_memory_storage.NewInMemoryNightLightStore()
+	inMemoryNightLightStore := cached_storage.NewAdjustableCache()
 	cachedNightLightStore := cached_storage.NewCachedNightLightStore(inMemoryNightLightStore, fileNightLightStore)
 
-	hyprsunsetAdapter, err := hyprsunset.NewNighLightAdapter(inMemoryNightLightStore)
+	hyprsunsetAdapter, err := hyprsunset.NewNighLightAdapter(cachedNightLightStore)
 	if err != nil {
 		return nil, err
 	}
