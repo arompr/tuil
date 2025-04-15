@@ -30,7 +30,7 @@ var (
 
 type model struct {
 	list    list.Model
-	persist *usecase.PersistUseCase
+	persist *usecase.SaveUseCase
 }
 
 type item struct {
@@ -148,7 +148,7 @@ func NewTUI(increaseNightLightUseCase *usecase.AdjustUseCase,
 	increaseBrightnessUseCase *usecase.AdjustUseCase,
 	decreaseBrightnessUseCase *usecase.AdjustUseCase,
 	getBrightnessPercentageUseCase *usecase.GetPercentageUseCase,
-	persistNightLightUseCase *usecase.PersistUseCase,
+	persistNightLightUseCase *usecase.SaveUseCase,
 ) *tea.Program {
 	choices := []item{
 		{

@@ -63,13 +63,15 @@ func initTuil() (*tea.Program, error) {
 	inMemoryBrightessStore := in_memory_storage.NewInMemoryBrightnessStore()
 	inMemoryBrightessStore.Save(brightness.CreateNewBrightness(currentBrightness, maxBrightness))
 
+	cachePersister := cached_storage.NewCachePersister(cachedNightLightStore)
+
 	increaseNightLightUseCase := usecase.NewIncreaseUseCase(cachedNightLightStore, hyprsunsetAdapter)
 	decreaseNightLightUseCase := usecase.NewDecreaseUseCase(cachedNightLightStore, hyprsunsetAdapter)
 	getNightLightPercentageUseCase := usecase.NewGetPercentageUseCase(cachedNightLightStore)
 	increaseBrightnessUseCase := usecase.NewIncreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	decreaseBrightnessUseCase := usecase.NewDecreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	getBrightnessPercentageUseCase := usecase.NewGetPercentageUseCase(inMemoryBrightessStore)
-	persistNightLightUseCase := usecase.NewPersistUseCase(cachedNightLightStore, fileNightLightStore)
+	persistNightLightUseCase := usecase.NewSaveUseCase(cachePersister)
 
 	return ui.NewTUI(
 		increaseNightLightUseCase,

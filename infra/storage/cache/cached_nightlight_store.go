@@ -35,3 +35,12 @@ func (c *CachedNightLightStore) Save(adjustable adjustable.IAdjustable) error {
 	c.cache.Save(adjustable)
 	return nil
 }
+
+func (c *CachedNightLightStore) Persist() error {
+	adjustable, err := c.Fetch()
+	if err != nil {
+		return err
+	}
+
+	return c.store.Save(adjustable)
+}
