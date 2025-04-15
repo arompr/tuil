@@ -7,8 +7,14 @@ tuil fills that gap. While it uses hyprsunset for a tailored Hyprland nightlight
 
 ![image](https://github.com/user-attachments/assets/5bcd5691-a947-47fe-86e0-cfa7ffe73c9e)
 
-## 🛠️ TODO
+## Requirements
+To use this tool, make sure the following dependencies are installed:
+- **Hyprland** >= 0.48  
+- **hyprsunset** >= 0.2  
+- **brightnessctl** (used for screen brightness control)
 
+
+## 🛠️ TODO
 - [ ] Cleanup `tui.go` for better structure and readability
 - [ ] Only initialize `hyprsunsetAdapter` and nightlight slider if **Hyprland is installed and running**
 - [ ] Improve error logging
