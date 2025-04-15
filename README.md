@@ -17,6 +17,7 @@ tuil fills that gap. While it uses hyprsunset for a tailored Hyprland nightlight
 - [ ] Cleanup `tui.go` for better structure and readability
 - [ ] Only initialize `hyprsunsetAdapter` and nightlight slider if **Hyprland is installed and running**
 - [ ] Improve error logging
+- [ ] Apply rollback on process kill or close without save
 - [ ] Add build instructions
 - [ ] Improve min/max value handling 
 - [ ] Add to the AUR - I use Arch, btw
