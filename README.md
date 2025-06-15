@@ -12,12 +12,21 @@ tuil fills that gap. While it uses hyprsunset for a tailored Hyprland nightlight
 - **hyprsunset** >= 0.2  
 - **brightnessctl** (used for screen brightness control)
 
+## Build instructions
+Build executable
+```console
+go build -o tuil
+```
+
+Add to path. For example: 
+```console
+sudo mv tuil /usr/local/bin/
+```
 
 ## 🛠️ TODO
 - [ ] Cleanup `tui.go` for better structure and readability
 - [ ] Only initialize `hyprsunsetAdapter` and nightlight slider if **Hyprland is installed and running**
 - [ ] Improve error logging
 - [ ] Apply rollback on process kill or close without save
-- [ ] Add build instructions
 - [ ] Improve min/max value handling 
 - [ ] Add to the AUR - I use Arch, btw
