@@ -44,10 +44,7 @@ func initTuil() (*tea.Program, error) {
 	inMemoryNightLightStore := cached_storage.NewAdjustableCache()
 	cachedNightLightStore := cached_storage.NewCachedNightLightStore(inMemoryNightLightStore, fileNightLightStore)
 
-	hyprsunsetAdapter, err := hyprsunset.NewNighLightAdapter(cachedNightLightStore)
-	if err != nil {
-		return nil, err
-	}
+	hyprsunsetAdapter := hyprsunset.NewNighLightAdapter(cachedNightLightStore)
 
 	brightnessctlAdapter := brightnessctl.NewBrightnessCtlAdapter()
 	currentBrightness, err := brightnessctlAdapter.GetCurrentBrightnessValue()
@@ -72,14 +69,20 @@ func initTuil() (*tea.Program, error) {
 	decreaseBrightnessUseCase := usecase.NewDecreaseUseCase(inMemoryBrightessStore, brightnessctlAdapter)
 	getBrightnessPercentageUseCase := usecase.NewGetPercentageUseCase(inMemoryBrightessStore)
 	persistNightLightUseCase := usecase.NewSaveUseCase(cachePersister)
+	items := ui.NewListItemCollection()
+	items.AddBrightness(increaseBrightnessUseCase, decreaseBrightnessUseCase, getBrightnessPercentageUseCase)
+
+	if hyprsunsetAdapter.IsAvailable() {
+		err := hyprsunsetAdapter.Start()
+		if err != nil {
+			return nil, err
+		}
+		items.AddNightLight(increaseNightLightUseCase, decreaseNightLightUseCase, getNightLightPercentageUseCase)
+	}
+	listModel := ui.BuildListModel(items.List)
 
 	return ui.NewTUI(
-		increaseNightLightUseCase,
-		decreaseNightLightUseCase,
-		getNightLightPercentageUseCase,
-		increaseBrightnessUseCase,
-		decreaseBrightnessUseCase,
-		getBrightnessPercentageUseCase,
+		listModel,
 		persistNightLightUseCase,
 	), nil
 }
