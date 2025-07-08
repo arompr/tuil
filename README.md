@@ -6,6 +6,13 @@ I run a very lightweight Hyprland setup, and while it's incredibly efficient, I 
 
 tuil fills that gap. While it uses hyprsunset for a tailored Hyprland nightlight control experience, it was designed to be easily adaptable - just implement a new adapter and pass it to the nightlight use cases instead of the hyprsunset adapter.
 
+I also made a simple ctl that starts Hyprsunset with the last saved value.
+If you want to use it at startup as I do, build it then add to your Hyprland config file:
+
+```console
+exec-once tuilctl --temperature
+```
+
 ![image](https://github.com/user-attachments/assets/5bcd5691-a947-47fe-86e0-cfa7ffe73c9e)
 
 ## Requirements
@@ -16,10 +23,16 @@ tuil fills that gap. While it uses hyprsunset for a tailored Hyprland nightlight
 
 ## Build instructions
 
-Build executable
+Build tuil executable
 
 ```console
 go build -o tuil
+```
+
+Build tuilctl executable
+
+```console
+go build -o tuilctl ./ctl
 ```
 
 Add to path. For example:
