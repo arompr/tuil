@@ -1,4 +1,4 @@
-# 🌙 tuil - A Work in progress -
+# 🌙 tuil
 
 A Terminal UI for Brightness & Night Light Control to manually adjust screen brightness and night light right from terminal.
 
