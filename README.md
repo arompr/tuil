@@ -4,19 +4,20 @@ A Terminal UI for Brightness & Night Light Control to manually adjust screen bri
 
 I run a very lightweight Hyprland setup, and while it's incredibly efficient, I found myself missing a quick and **user-friendly** way to tweak brightness and night light without leaving terminal.
 
-tuil fills that gap. While it uses hyprsunset for a tailored Hyprland nightlight control experience, it was designed to be easily adaptable - just implement a new adapter and pass it to the nightlight use cases instead of the hyprsunset adapter.
+tuil fills that gap for me.
 
 I also made a simple ctl that starts Hyprsunset with the last saved value.
 If you want to use it at startup as I do, build it then add to your Hyprland config file:
 
 ```console
-exec-once tuilctl --temperature
+exec-once tuilctl --night
 ```
 
 ![image](https://github.com/user-attachments/assets/5bcd5691-a947-47fe-86e0-cfa7ffe73c9e)
 
 ## Requirements
 
+- Go
 - **Hyprland** >= 0.48  
 - **hyprsunset** >= 0.2  
 - **brightnessctl** (used for screen brightness control)
@@ -39,8 +40,13 @@ Add to path. For example:
 
 ```console
 sudo mv tuil /usr/local/bin/
+sudo mv tuilctl /usr/local/bin/
 ```
 
+## tuilctl usage
+
+tuilctl --night: Applies last nightlight temperature to hyprsunset and starts it if needed. 
+tuilctl --light: Applies 6000 temperature to hyprsunset. (Basically toggles off nightlight)
 ## 🛠️ TODO
 
 - [ ] Cleanup `tui.go` for better structure and readability
@@ -48,3 +54,4 @@ sudo mv tuil /usr/local/bin/
 - [ ] Apply rollback on process kill or close without save
 - [ ] Improve min/max value handling
 - [ ] Add to the AUR - I use Arch, btw
+- [ ] Toggle On/Off nightlight

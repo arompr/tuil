@@ -6,22 +6,24 @@ type NightLight struct {
 	min                int
 }
 
-const MaxTemperature = 1500
-const MinTemperature = 6500
+const (
+	MaxTemperature = 1500
+	MinTemperature = 6000
+)
 
 func CreateNewNightLight(value int) *NightLight {
 	return &NightLight{value, MaxTemperature, MinTemperature}
 }
 
 func (n *NightLight) Increase(percentage float64) {
-	n.applyTemperature(max(n.calculateNewTemperature(-percentage), n.GetMax()))
+	n.ApplyValue(max(n.calculateNewTemperature(-percentage), n.GetMax()))
 }
 
 func (n *NightLight) Decrease(percentage float64) {
-	n.applyTemperature(min(n.calculateNewTemperature(percentage), n.GetMin()))
+	n.ApplyValue(min(n.calculateNewTemperature(percentage), n.GetMin()))
 }
 
-func (n *NightLight) applyTemperature(value int) {
+func (n *NightLight) ApplyValue(value int) {
 	n.currentTemperature = value
 }
 

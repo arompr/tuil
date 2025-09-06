@@ -13,18 +13,18 @@ func CreateNewBrightness(value, max int) *Brightness {
 }
 
 func (b *Brightness) Increase(percentage float64) {
-	b.applyBrightness(int(min(b.calculateNewBrightness(percentage), float64(b.GetMax()))))
+	b.ApplyValue(int(min(b.calculateNewBrightness(percentage), float64(b.GetMax()))))
 }
 
 func (b *Brightness) Decrease(percentage float64) {
-	b.applyBrightness(int(max(b.calculateNewBrightness(-percentage), float64(b.GetMin()))))
+	b.ApplyValue(int(max(b.calculateNewBrightness(-percentage), float64(b.GetMin()))))
 }
 
 func (b *Brightness) calculateNewBrightness(percentage float64) float64 {
 	return float64(b.GetCurrentValue()) + (float64(b.GetMax()) * percentage)
 }
 
-func (b *Brightness) applyBrightness(value int) {
+func (b *Brightness) ApplyValue(value int) {
 	b.currentBrightness = value
 }
 
