@@ -43,10 +43,14 @@ sudo mv tuil /usr/local/bin/
 sudo mv tuilctl /usr/local/bin/
 ```
 
-## tuilctl usage
+## tuilctl Usage
 
-tuilctl --night: Applies last nightlight temperature to hyprsunset and starts it if needed. 
-tuilctl --light: Applies 6000 temperature to hyprsunset. (Basically toggles off nightlight)
+- `tuilctl --night`  
+  Applies the last saved nightlight temperature and starts `hyprsunset` if it’s not running.
+
+- `tuilctl --light`  
+  Sets the light temperature to 6000K (turns off nightlight).
+
 ## 🛠️ TODO
 
 - [ ] Cleanup `tui.go` for better structure and readability
