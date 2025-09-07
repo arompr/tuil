@@ -1,9 +1,15 @@
 package nightlight
 
+type INightLight interface {
+	IsEnabled() bool
+	GetCurrentTemperature()
+}
+
 type NightLight struct {
 	currentTemperature int
 	max                int
 	min                int
+	enabled            bool
 }
 
 const (
@@ -11,8 +17,20 @@ const (
 	MinTemperature = 6000
 )
 
-func CreateNewNightLight(value int) *NightLight {
-	return &NightLight{value, MaxTemperature, MinTemperature}
+type NightLightOption func(*NightLight)
+
+func WithEnabled(enabled bool) NightLightOption {
+	return func(n *NightLight) {
+		n.enabled = enabled
+	}
+}
+
+func CreateNewNightLight(value int, opts ...NightLightOption) *NightLight {
+	n := &NightLight{value, MaxTemperature, MinTemperature, true}
+	for _, opt := range opts {
+		opt(n)
+	}
+	return n
 }
 
 func (n *NightLight) Increase(percentage float64) {

@@ -1,84 +1,93 @@
 package file_storage
 
 import (
+	"encoding/json"
 	"fmt"
-	"lighttui/domain/adjustable"
-	"lighttui/domain/adjustable/nightlight"
 	"os"
 	"path/filepath"
-	"strconv"
+
+	"lighttui/domain/adjustable"
+	"lighttui/domain/adjustable/nightlight"
 )
 
-// FileNightLightStore handles reading, and storing the current hyprsunset temperature.
+type NightLightState struct {
+	Enabled     bool `json:"enabled"`
+	Temperature int  `json:"temperature"`
+}
+
 type FileNightLightStore struct {
 	path string
 }
 
-// NewTemperatureStore initializes the store, reading the temperature or setting a default.
+// NewHyprsunsetFileStore ensures the file exists with default state.
 func NewHyprsunsetFileStore(filePath string) (*FileNightLightStore, error) {
 	f := &FileNightLightStore{filePath}
-	err := f.initFileStore()
-	return f, err
+	if err := f.initFileStore(); err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
-// Reads the night light temperature file or initializes it with the min default value.
 func (f *FileNightLightStore) initFileStore() error {
 	dir := filepath.Dir(f.path)
-
-	// Create all necessary directories if they don't exist
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create directories for night light store: %w", err)
 	}
 
-	_, err := os.Stat(f.path)
-	if os.IsNotExist(err) {
-		return f.writeToFile(nightlight.MinTemperature)
+	if _, err := os.Stat(f.path); os.IsNotExist(err) {
+		defaultState := NightLightState{
+			Enabled:     true,
+			Temperature: nightlight.MinTemperature,
+		}
+		return f.writeState(defaultState)
 	}
-
-	if err != nil {
-		return fmt.Errorf("error checking night light store file: %w", err)
-	}
-
 	return nil
 }
 
 func (f *FileNightLightStore) Fetch() (adjustable.IAdjustable, error) {
-	temperature, err := f.readTemperature()
-
+	state, err := f.readState()
 	if err != nil {
-		return nil, fmt.Errorf("error fetching night light from file")
+		return nil, fmt.Errorf("error fetching night light: %w", err)
 	}
 
-	return nightlight.CreateNewNightLight(temperature), nil
+	return toNightLight(state), nil
 }
 
-// readTemperature reads the night light temperature from the file or sets it's value if file is empty.
-func (f *FileNightLightStore) readTemperature() (int, error) {
-	data, err := os.ReadFile(f.path)
-	if err != nil {
-		return nightlight.MinTemperature, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	// Handle empty file by setting default
-	if len(data) == 0 {
-		return nightlight.MinTemperature, f.writeToFile(nightlight.MinTemperature)
-	}
-
-	temperature, err := strconv.Atoi(string(data))
-	if err != nil {
-		return nightlight.MinTemperature, fmt.Errorf("invalid night light value in file: %w", err)
-	}
-
-	return temperature, nil
+func toNightLight(state NightLightState) adjustable.IAdjustable {
+	temp := state.Temperature
+	isEnabled := state.Enabled
+	return nightlight.CreateNewNightLight(temp, nightlight.WithEnabled(isEnabled))
 }
 
 func (f *FileNightLightStore) Save(adjustable adjustable.IAdjustable) error {
-	if err := f.writeToFile(adjustable.GetCurrentValue()); err != nil {
-		return fmt.Errorf("failed to write temperature file: %w", err)
+	state, err := f.readState()
+	if err != nil {
+		return err
 	}
-	return nil
+
+	state.Temperature = adjustable.GetCurrentValue()
+	return f.writeState(state)
 }
 
-func (f *FileNightLightStore) writeToFile(value int) error {
-	return os.WriteFile(f.path, []byte(strconv.Itoa(value)), 0644)
+func (f *FileNightLightStore) readState() (NightLightState, error) {
+	data, err := os.ReadFile(f.path)
+	if err != nil {
+		return NightLightState{}, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	var state NightLightState
+	if err := json.Unmarshal(data, &state); err != nil {
+		// Reset if corrupted
+		state = NightLightState{Enabled: true, Temperature: nightlight.MinTemperature}
+		_ = f.writeState(state)
+	}
+	return state, nil
+}
+
+func (f *FileNightLightStore) writeState(state NightLightState) error {
+	data, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to serialize night light state: %w", err)
+	}
+	return os.WriteFile(f.path, data, 0o644)
 }
