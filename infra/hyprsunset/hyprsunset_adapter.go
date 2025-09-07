@@ -1,16 +1,12 @@
 package hyprsunset
 
 import (
-	"lighttui/domain/adjustable"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
-)
 
-const (
-	maxTemperatureDeprecated = 1500
-	minTemperatureDeprecated = 6500
+	"lighttui/domain/adjustable"
 )
 
 type HyprsunsetAdapter struct {
@@ -39,20 +35,18 @@ func (h *HyprsunsetAdapter) ensureHyprsunsetRunning() error {
 		return err
 	}
 
-	// Check for Hyprsunset process
-	output, err := exec.Command("pgrep", "-a", "hyprsunset").Output()
-	if err != nil {
-		err := startHyprsunset(nightlight.GetCurrentValue())
+	if isHyprsunsetRunning() {
+		temp, err := getCurrentHyprsunsetTemperature()
 		if err != nil {
 			return err
 		}
-	}
 
-	// Convert output to string and split lines
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	if len(lines) == 0 {
-		err := startHyprsunset(nightlight.GetCurrentValue())
-		if err != nil {
+		nightlight.ApplyValue(temp)
+		if err := h.store.Save(nightlight); err != nil {
+			return err
+		}
+	} else {
+		if err := startHyprsunset(nightlight.GetCurrentValue()); err != nil {
 			return err
 		}
 	}
@@ -60,8 +54,19 @@ func (h *HyprsunsetAdapter) ensureHyprsunsetRunning() error {
 	return nil
 }
 
+func isHyprsunsetRunning() bool {
+	output, err := exec.Command("pgrep", "-a", "hyprsunset").Output()
+	if err != nil {
+		// pgrep returns error if no process matched
+		return false
+	}
+
+	// If output is non-empty, Hyprsunset is running
+	return len(strings.TrimSpace(string(output))) > 0
+}
+
 func startHyprsunset(temperature int) error {
-	return exec.Command("hyprsunset", "-t", strconv.Itoa(temperature)).Start()
+	return exec.Command("setsid", "hyprsunset", "-t", strconv.Itoa(temperature)).Start()
 }
 
 func isHyprlandRunning() bool {
@@ -82,4 +87,21 @@ func isHyprlandRunning() bool {
 
 func execHyprsunsetTemperature(adjustable adjustable.IAdjustable) error {
 	return exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(adjustable.GetCurrentValue())).Start()
+}
+
+func getCurrentHyprsunsetTemperature() (int, error) {
+	cmd := exec.Command("bash", "-c", "hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+'")
+	out, err := cmd.Output()
+	if err != nil {
+		return 0, err
+	}
+
+	// Clean up whitespace and convert to int
+	valueStr := strings.TrimSpace(string(out))
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
 }
