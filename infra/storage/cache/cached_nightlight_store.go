@@ -8,14 +8,14 @@ import (
 
 type CachedNightlightStore struct {
 	inMemoryNightlightStore *in_memory_storage.InMemoryNightlightStore
-	store                   *file_storage.FileNightlightStore
+	persistentStore         *file_storage.FileNightlightStore
 }
 
 func NewCachedNightlightStore(
 	inMemoryNightlightStore *in_memory_storage.InMemoryNightlightStore,
-	store *file_storage.FileNightlightStore,
+	persistentStore *file_storage.FileNightlightStore,
 ) *CachedNightlightStore {
-	return &CachedNightlightStore{inMemoryNightlightStore, store}
+	return &CachedNightlightStore{inMemoryNightlightStore, persistentStore}
 }
 
 func (store *CachedNightlightStore) Fetch() (*nightlight.Nightlight, error) {
@@ -24,7 +24,7 @@ func (store *CachedNightlightStore) Fetch() (*nightlight.Nightlight, error) {
 		return inMemoryNightlight, nil
 	}
 
-	persistedNightlight, err := store.store.Fetch()
+	persistedNightlight, err := store.persistentStore.Fetch()
 	if err != nil {
 		return nil, err
 	}
@@ -44,5 +44,5 @@ func (store *CachedNightlightStore) Persist() error {
 		return err
 	}
 
-	return store.store.Save(nightlight)
+	return store.persistentStore.Save(nightlight)
 }
