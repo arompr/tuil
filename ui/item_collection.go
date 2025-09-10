@@ -32,9 +32,9 @@ type ListItemCollection struct {
 type ListItem struct {
 	name          string
 	progress      progress.Model
-	increase      *usecase.AdjustUseCase
-	decrease      *usecase.AdjustUseCase
-	getPercentage *usecase.GetPercentageUseCase
+	increase      usecase.IAdjustableUseCase
+	decrease      usecase.IAdjustableUseCase
+	getPercentage usecase.IGetAdjustablePercentageUseCase
 }
 
 func NewListItemCollection() *ListItemCollection {
@@ -56,9 +56,9 @@ func (l *ListItemCollection) AddBrightness(increaseBrightnessUseCase *usecase.Ad
 	})
 }
 
-func (l *ListItemCollection) AddNightLight(increaseNightLightUseCase *usecase.AdjustUseCase,
-	decreaseNightLightUseCase *usecase.AdjustUseCase,
-	getNightLightPercentageUseCase *usecase.GetPercentageUseCase,
+func (l *ListItemCollection) AddNightLight(increaseNightLightUseCase *usecase.AdjustNightlightUseCase,
+	decreaseNightLightUseCase *usecase.AdjustNightlightUseCase,
+	getNightLightPercentageUseCase *usecase.GetNightlightPercentageUseCase,
 ) {
 	l.List = append(l.List, ListItem{
 		name: "NightLight",

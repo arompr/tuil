@@ -1,11 +1,6 @@
 package nightlight
 
-type INightLight interface {
-	IsEnabled() bool
-	GetCurrentTemperature()
-}
-
-type NightLight struct {
+type Nightlight struct {
 	currentTemperature int
 	max                int
 	min                int
@@ -17,55 +12,59 @@ const (
 	MinTemperature = 6000
 )
 
-type NightLightOption func(*NightLight)
+type NightlightOption func(*Nightlight)
 
-func WithEnabled(enabled bool) NightLightOption {
-	return func(n *NightLight) {
+func WithEnabled(enabled bool) NightlightOption {
+	return func(n *Nightlight) {
 		n.enabled = enabled
 	}
 }
 
-func CreateNewNightLight(value int, opts ...NightLightOption) *NightLight {
-	n := &NightLight{value, MaxTemperature, MinTemperature, true}
+func CreateNewNightLight(value int, opts ...NightlightOption) *Nightlight {
+	n := &Nightlight{value, MaxTemperature, MinTemperature, true}
 	for _, opt := range opts {
 		opt(n)
 	}
 	return n
 }
 
-func (n *NightLight) Increase(percentage float64) {
+func (n *Nightlight) Increase(percentage float64) {
 	n.ApplyValue(max(n.calculateNewTemperature(-percentage), n.GetMax()))
 }
 
-func (n *NightLight) Decrease(percentage float64) {
+func (n *Nightlight) Decrease(percentage float64) {
 	n.ApplyValue(min(n.calculateNewTemperature(percentage), n.GetMin()))
 }
 
-func (n *NightLight) ApplyValue(value int) {
+func (n *Nightlight) ApplyValue(value int) {
 	n.currentTemperature = value
 }
 
-func (n *NightLight) calculateNewTemperature(percentage float64) int {
+func (n *Nightlight) calculateNewTemperature(percentage float64) int {
 	return int(float64(n.GetCurrentValue()) + n.getDelta(percentage))
 }
 
 // delta is the amount of temperature change that corresponds to a given percentage of the full night light range.
-func (n *NightLight) getDelta(percentage float64) float64 {
+func (n *Nightlight) getDelta(percentage float64) float64 {
 	return float64(n.GetMin()-n.GetMax()) * percentage
 }
 
-func (n *NightLight) GetPercentage() float64 {
+func (n *Nightlight) GetPercentage() float64 {
 	return 1 - (float64(n.GetCurrentValue()-n.GetMax()) / float64(n.GetMin()-n.GetMax()))
 }
 
-func (n *NightLight) GetCurrentValue() int {
+func (n *Nightlight) GetCurrentValue() int {
 	return n.currentTemperature
 }
 
-func (n *NightLight) GetMax() int {
+func (n *Nightlight) GetMax() int {
 	return n.max
 }
 
-func (n *NightLight) GetMin() int {
+func (n *Nightlight) GetMin() int {
 	return n.min
+}
+
+func (n *Nightlight) IsEnabled() bool {
+	return n.enabled
 }

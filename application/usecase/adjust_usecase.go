@@ -17,19 +17,11 @@ func NewDecreaseUseCase(
 	return &AdjustUseCase{store, adapter, decrease}
 }
 
-func decrease(i adjustable.IAdjustable, percentage float64) {
-	i.Decrease(percentage)
-}
-
 func NewIncreaseUseCase(
 	store adjustable.IAdjustableStore,
 	adapter adjustable.IAdjustableAdapter,
 ) *AdjustUseCase {
 	return &AdjustUseCase{store, adapter, increase}
-}
-
-func increase(i adjustable.IAdjustable, percentage float64) {
-	i.Increase(percentage)
 }
 
 func (i *AdjustUseCase) Exec(percentage float64) error {

@@ -6,52 +6,29 @@ import (
 	"strconv"
 	"strings"
 
-	"lighttui/domain/adjustable"
+	"lighttui/domain/adjustable/nightlight"
 )
 
-type HyprsunsetAdapter struct {
-	store adjustable.IAdjustableStore
-}
+type HyprsunsetAdapter struct{}
 
-func NewNighLightAdapter(store adjustable.IAdjustableStore) *HyprsunsetAdapter {
-	return &HyprsunsetAdapter{store}
+func NewHyprsunsetAdapter() *HyprsunsetAdapter {
+	return &HyprsunsetAdapter{}
 }
 
 func (h *HyprsunsetAdapter) IsAvailable() bool {
 	return isHyprlandRunning()
 }
 
-func (h *HyprsunsetAdapter) Start() error {
-	return h.ensureHyprsunsetRunning()
-}
-
-func (h *HyprsunsetAdapter) ApplyValue(adjustable adjustable.IAdjustable) error {
-	return execHyprsunsetTemperature(adjustable)
-}
-
-func (h *HyprsunsetAdapter) ensureHyprsunsetRunning() error {
-	nightlight, err := h.store.Fetch()
-	if err != nil {
-		return err
-	}
-
+func (h *HyprsunsetAdapter) Start(initialValue int) error {
 	if isHyprsunsetRunning() {
-		temp, err := getCurrentHyprsunsetTemperature()
-		if err != nil {
-			return err
-		}
-
-		nightlight.ApplyValue(temp)
-		if err := h.store.Save(nightlight); err != nil {
-			return err
-		}
-	} else {
-		if err := startHyprsunset(nightlight.GetCurrentValue()); err != nil {
-			return err
-		}
+		return nil
 	}
 
-	return nil
+	return startHyprsunset(initialValue)
+}
+
+func (h *HyprsunsetAdapter) ApplyValue(nightlight *nightlight.Nightlight) error {
+	return execHyprsunsetTemperature(nightlight)
 }
 
 func isHyprsunsetRunning() bool {
@@ -85,23 +62,23 @@ func isHyprlandRunning() bool {
 	return true
 }
 
-func execHyprsunsetTemperature(adjustable adjustable.IAdjustable) error {
-	return exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(adjustable.GetCurrentValue())).Start()
+func execHyprsunsetTemperature(nightlight *nightlight.Nightlight) error {
+	return exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(nightlight.GetCurrentValue())).Start()
 }
 
-func getCurrentHyprsunsetTemperature() (int, error) {
+func (h *HyprsunsetAdapter) GetCurrentNightlight() (*nightlight.Nightlight, error) {
 	cmd := exec.Command("bash", "-c", "hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+'")
 	out, err := cmd.Output()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	// Clean up whitespace and convert to int
 	valueStr := strings.TrimSpace(string(out))
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return value, nil
+	return nightlight.CreateNewNightLight(value), nil
 }

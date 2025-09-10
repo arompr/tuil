@@ -1,46 +1,48 @@
 package cached_storage
 
 import (
-	"lighttui/domain/adjustable"
+	"lighttui/domain/adjustable/nightlight"
+	file_storage "lighttui/infra/storage/file"
+	in_memory_storage "lighttui/infra/storage/in_memory"
 )
 
-type CachedNightLightStore struct {
-	cache *AdjustableCache
-	store adjustable.IAdjustableStore
+type CachedNightlightStore struct {
+	inMemoryNightlightStore *in_memory_storage.InMemoryNightlightStore
+	store                   *file_storage.FileNightlightStore
 }
 
-func NewCachedNightLightStore(
-	cache *AdjustableCache,
-	store adjustable.IAdjustableStore,
-) *CachedNightLightStore {
-	return &CachedNightLightStore{cache, store}
+func NewCachedNightlightStore(
+	inMemoryNightlightStore *in_memory_storage.InMemoryNightlightStore,
+	store *file_storage.FileNightlightStore,
+) *CachedNightlightStore {
+	return &CachedNightlightStore{inMemoryNightlightStore, store}
 }
 
-func (c *CachedNightLightStore) Fetch() (adjustable.IAdjustable, error) {
-	cached := c.cache.Fetch()
-	if cached != nil {
-		return cached, nil
+func (store *CachedNightlightStore) Fetch() (*nightlight.Nightlight, error) {
+	inMemoryNightlight := store.inMemoryNightlightStore.Fetch()
+	if inMemoryNightlight != nil {
+		return inMemoryNightlight, nil
 	}
 
-	adjustable, err := c.store.Fetch()
+	persistedNightlight, err := store.store.Fetch()
 	if err != nil {
 		return nil, err
 	}
 
-	c.cache.Save(adjustable)
-	return adjustable, nil
+	store.inMemoryNightlightStore.Save(persistedNightlight)
+	return persistedNightlight, nil
 }
 
-func (c *CachedNightLightStore) Save(adjustable adjustable.IAdjustable) error {
-	c.cache.Save(adjustable)
+func (store *CachedNightlightStore) Save(nightlight *nightlight.Nightlight) error {
+	store.inMemoryNightlightStore.Save(nightlight)
 	return nil
 }
 
-func (c *CachedNightLightStore) Persist() error {
-	adjustable, err := c.Fetch()
+func (store *CachedNightlightStore) Persist() error {
+	nightlight, err := store.Fetch()
 	if err != nil {
 		return err
 	}
 
-	return c.store.Save(adjustable)
+	return store.store.Save(nightlight)
 }

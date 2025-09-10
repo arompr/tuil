@@ -1,10 +1,10 @@
 package cached_storage
 
 type CachePersister struct {
-	cachedStore *CachedNightLightStore
+	cachedStore *CachedNightlightStore
 }
 
-func NewCachePersister(cachedStore *CachedNightLightStore) *CachePersister {
+func NewCachePersister(cachedStore *CachedNightlightStore) *CachePersister {
 	return &CachePersister{cachedStore}
 }
 

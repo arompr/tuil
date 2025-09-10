@@ -6,36 +6,35 @@ import (
 	"os"
 	"path/filepath"
 
-	"lighttui/domain/adjustable"
 	"lighttui/domain/adjustable/nightlight"
 )
 
-type NightLightState struct {
+type NightlightState struct {
 	Enabled     bool `json:"enabled"`
 	Temperature int  `json:"temperature"`
 }
 
-type FileNightLightStore struct {
+type FileNightlightStore struct {
 	path string
 }
 
 // NewHyprsunsetFileStore ensures the file exists with default state.
-func NewHyprsunsetFileStore(filePath string) (*FileNightLightStore, error) {
-	f := &FileNightLightStore{filePath}
+func NewHyprsunsetFileStore(filePath string) (*FileNightlightStore, error) {
+	f := &FileNightlightStore{filePath}
 	if err := f.initFileStore(); err != nil {
 		return nil, err
 	}
 	return f, nil
 }
 
-func (f *FileNightLightStore) initFileStore() error {
+func (f *FileNightlightStore) initFileStore() error {
 	dir := filepath.Dir(f.path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create directories for night light store: %w", err)
 	}
 
 	if _, err := os.Stat(f.path); os.IsNotExist(err) {
-		defaultState := NightLightState{
+		defaultState := NightlightState{
 			Enabled:     true,
 			Temperature: nightlight.MinTemperature,
 		}
@@ -44,7 +43,7 @@ func (f *FileNightLightStore) initFileStore() error {
 	return nil
 }
 
-func (f *FileNightLightStore) Fetch() (adjustable.IAdjustable, error) {
+func (f *FileNightlightStore) Fetch() (*nightlight.Nightlight, error) {
 	state, err := f.readState()
 	if err != nil {
 		return nil, fmt.Errorf("error fetching night light: %w", err)
@@ -53,38 +52,38 @@ func (f *FileNightLightStore) Fetch() (adjustable.IAdjustable, error) {
 	return toNightLight(state), nil
 }
 
-func toNightLight(state NightLightState) adjustable.IAdjustable {
+func toNightLight(state NightlightState) *nightlight.Nightlight {
 	temp := state.Temperature
 	isEnabled := state.Enabled
 	return nightlight.CreateNewNightLight(temp, nightlight.WithEnabled(isEnabled))
 }
 
-func (f *FileNightLightStore) Save(adjustable adjustable.IAdjustable) error {
+func (f *FileNightlightStore) Save(nightlight *nightlight.Nightlight) error {
 	state, err := f.readState()
 	if err != nil {
 		return err
 	}
 
-	state.Temperature = adjustable.GetCurrentValue()
+	state.Temperature = nightlight.GetCurrentValue()
 	return f.writeState(state)
 }
 
-func (f *FileNightLightStore) readState() (NightLightState, error) {
+func (f *FileNightlightStore) readState() (NightlightState, error) {
 	data, err := os.ReadFile(f.path)
 	if err != nil {
-		return NightLightState{}, fmt.Errorf("failed to read file: %w", err)
+		return NightlightState{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	var state NightLightState
+	var state NightlightState
 	if err := json.Unmarshal(data, &state); err != nil {
 		// Reset if corrupted
-		state = NightLightState{Enabled: true, Temperature: nightlight.MinTemperature}
+		state = NightlightState{Enabled: true, Temperature: nightlight.MinTemperature}
 		_ = f.writeState(state)
 	}
 	return state, nil
 }
 
-func (f *FileNightLightStore) writeState(state NightLightState) error {
+func (f *FileNightlightStore) writeState(state NightlightState) error {
 	data, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to serialize night light state: %w", err)

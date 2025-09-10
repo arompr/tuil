@@ -1,10 +1,12 @@
 package usecase
 
+import "lighttui/domain/adjustable/nightlight"
+
 type SaveUseCase struct {
-	persister IPersister
+	persister nightlight.IPersister
 }
 
-func NewSaveUseCase(cacheStorecacheUnitOfWork IPersister) *SaveUseCase {
+func NewSaveUseCase(cacheStorecacheUnitOfWork nightlight.IPersister) *SaveUseCase {
 	return &SaveUseCase{cacheStorecacheUnitOfWork}
 }
 

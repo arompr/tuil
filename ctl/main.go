@@ -6,10 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"lighttui/application/startup"
 	"lighttui/application/usecase"
 	"lighttui/infra/hyprsunset"
 	cached_storage "lighttui/infra/storage/cache"
 	file_storage "lighttui/infra/storage/file"
+	in_memory_storage "lighttui/infra/storage/in_memory"
 )
 
 func main() {
@@ -44,13 +46,13 @@ func main() {
 	}
 }
 
-// Controller holds initialized dependencies and use cases
 type Controller struct {
-	CachedNightLightStore          *cached_storage.CachedNightLightStore
-	HyprsunsetAdapter              *hyprsunset.HyprsunsetAdapter
-	PersistNightLightUseCase       *usecase.SaveUseCase
-	ApplyTemperatureUseCase        *usecase.ApplyTemperatureUseCase
-	GetNightLightPercentageUseCase *usecase.GetPercentageUseCase
+	nightlightStore                *cached_storage.CachedNightlightStore
+	nightlightAdapter              *hyprsunset.HyprsunsetAdapter
+	saveNightlightUseCase          *usecase.SaveUseCase
+	applyTemperatureUseCase        *usecase.ApplyTemperatureUseCase
+	getNightlightPercentageUseCase *usecase.GetNightlightPercentageUseCase
+	startNightlightServices        *startup.StartNightlightServices
 }
 
 // initCtl initializes everything and returns a controller
@@ -65,48 +67,43 @@ func initCtl() (*Controller, error) {
 		return nil, err
 	}
 
-	inMemoryNightLightStore := cached_storage.NewAdjustableCache()
-	cachedNightLightStore := cached_storage.NewCachedNightLightStore(inMemoryNightLightStore, fileNightLightStore)
-	hyprsunsetAdapter := hyprsunset.NewNighLightAdapter(cachedNightLightStore)
-	cachePersister := cached_storage.NewCachePersister(cachedNightLightStore)
+	inMemoryNightLightStore := in_memory_storage.NewInMemoryNightlightStore()
+	nightlightStore := cached_storage.NewCachedNightlightStore(inMemoryNightLightStore, fileNightLightStore)
+	hyprsunsetAdapter := hyprsunset.NewHyprsunsetAdapter()
+	cachePersister := cached_storage.NewCachePersister(nightlightStore)
 
 	return &Controller{
-		CachedNightLightStore:          cachedNightLightStore,
-		HyprsunsetAdapter:              hyprsunsetAdapter,
-		PersistNightLightUseCase:       usecase.NewSaveUseCase(cachePersister),
-		ApplyTemperatureUseCase:        usecase.NewApplyTemperatureUseCase(cachedNightLightStore, hyprsunsetAdapter),
-		GetNightLightPercentageUseCase: usecase.NewGetPercentageUseCase(cachedNightLightStore),
+		nightlightStore,
+		hyprsunsetAdapter,
+		usecase.NewSaveUseCase(cachePersister),
+		usecase.NewApplyTemperatureUseCase(nightlightStore, hyprsunsetAdapter),
+		usecase.NewGetNightlightPercentageUseCase(nightlightStore),
+		startup.NewStartNightlightServices(hyprsunsetAdapter, nightlightStore),
 	}, nil
 }
 
-// RunApplyNightTemperature prints the current nightlight percentage
 func (c *Controller) RunApplyNightTemperature() error {
-	if !c.HyprsunsetAdapter.IsAvailable() {
-		return fmt.Errorf("hyprsunset adapter is not available (is Hyprland running on this TTY?)")
-	}
-
-	if err := c.HyprsunsetAdapter.Start(); err != nil {
-		return fmt.Errorf("failed to start hyprsunset: %w", err)
-	}
-
-	value, err := c.CachedNightLightStore.Fetch()
+	err := c.startNightlightServices.Exec()
 	if err != nil {
-		return fmt.Errorf("failed to get nightlight percentage: %w", err)
+		return err
 	}
 
-	c.ApplyTemperatureUseCase.Exec(value.GetCurrentValue())
+	percentage, err := c.getNightlightPercentageUseCase.Exec()
+	if err != nil {
+		return err
+	}
 
-	fmt.Printf("Nightlight temperature: %d%%\n", int64(value.GetPercentage()*100))
+	fmt.Printf("Nightlight temperature: %d%%\n", int64(percentage*100))
 	return nil
 }
 
 // RunApplyLightTemperature applies a light temperature and persists it
 func (c *Controller) RunApplyLightTemperature(temp int) error {
-	if err := c.ApplyTemperatureUseCase.Exec(temp); err != nil {
+	if err := c.applyTemperatureUseCase.Exec(temp); err != nil {
 		return fmt.Errorf("failed to apply light temperature: %w", err)
 	}
 
-	if err := c.PersistNightLightUseCase.Exec(); err != nil {
+	if err := c.saveNightlightUseCase.Exec(); err != nil {
 		return fmt.Errorf("failed to persist light temperature: %w", err)
 	}
 
