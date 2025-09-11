@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 	"lighttui/application/startup"
 	"lighttui/application/usecase"
 	"lighttui/domain/adjustable/brightness"
+	"lighttui/domain/adjustable/nightlight"
 	"lighttui/infra/brightnessctl"
 	"lighttui/infra/hyprsunset"
 	cached_storage "lighttui/infra/storage/cache"
@@ -77,12 +79,15 @@ func initTuil() (*tea.Program, error) {
 
 	err = startNightlightServices.Exec()
 	if err != nil {
-		return nil, err
+		var unavailable *nightlight.ErrNightlightAdapterUnavailable
+		if errors.As(err, &unavailable) {
+			fmt.Println("Nightlight adapter unavailable, skipping Nightlight")
+		} else {
+			return nil, err
+		}
 	}
 
-	if hyprsunsetAdapter.IsAvailable() {
-		items.AddNightLight(increaseNightLightUseCase, decreaseNightLightUseCase, getNightLightPercentageUseCase)
-	}
+	items.AddNightLight(increaseNightLightUseCase, decreaseNightLightUseCase, getNightLightPercentageUseCase)
 
 	listModel := ui.BuildListModel(items.List)
 

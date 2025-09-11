@@ -1,7 +1,7 @@
 package startup
 
 import (
-	"fmt"
+	"errors"
 
 	"lighttui/domain/adjustable/nightlight"
 )
@@ -16,30 +16,31 @@ func NewStartNightlightServices(adapter nightlight.INightlightAdapter, store nig
 }
 
 func (service *StartNightlightServices) Exec() error {
-	if !service.nightlightAdapter.IsAvailable() {
-		return fmt.Errorf("hyprsunset adapter is not available (is Hyprland running on this TTY?)")
-	}
+	// Try to get current currentNightlight from adapter
+	currentNightlight, err := service.nightlightAdapter.GetCurrentNightlight()
+	if err != nil {
+		var adapterUnavailable *nightlight.ErrNightlightAdapterUnavailable
+		if errors.As(err, &adapterUnavailable) {
+			return err
+		}
 
-	// Try to get current nightlight from adapter
-	nightlight, err := service.nightlightAdapter.GetCurrentNightlight()
-	if err != nil || nightlight == nil {
 		// fallback to store
-		nightlight, err = service.nightlightStore.Fetch()
+		currentNightlight, err = service.nightlightStore.Fetch()
 		if err != nil {
 			return err
 		}
 	} else {
 		// persist adapter nightlight to store
-		if err := service.nightlightStore.Save(nightlight); err != nil {
+		if err := service.nightlightStore.Save(currentNightlight); err != nil {
 			return err
 		}
 	}
 
 	// start the adapter if needed
-	if err := service.nightlightAdapter.Start(nightlight.GetCurrentValue()); err != nil {
+	if err := service.nightlightAdapter.Start(currentNightlight.GetCurrentValue()); err != nil {
 		return err
 	}
 
 	// ensure system has correct value applied
-	return service.nightlightAdapter.ApplyValue(nightlight)
+	return service.nightlightAdapter.ApplyValue(currentNightlight)
 }

@@ -15,11 +15,11 @@ func NewHyprsunsetAdapter() *HyprsunsetAdapter {
 	return &HyprsunsetAdapter{}
 }
 
-func (h *HyprsunsetAdapter) IsAvailable() bool {
-	return isHyprlandRunning()
-}
+func (adapter *HyprsunsetAdapter) Start(initialValue int) error {
+	if !adapter.IsAvailable() {
+		return &nightlight.ErrNightlightAdapterUnavailable{Adapter: "HyprsunsetAdapter"}
+	}
 
-func (h *HyprsunsetAdapter) Start(initialValue int) error {
 	if isHyprsunsetRunning() {
 		return nil
 	}
@@ -27,7 +27,11 @@ func (h *HyprsunsetAdapter) Start(initialValue int) error {
 	return startHyprsunset(initialValue)
 }
 
-func (h *HyprsunsetAdapter) ApplyValue(nightlight *nightlight.Nightlight) error {
+func (adapter *HyprsunsetAdapter) IsAvailable() bool {
+	return isHyprlandRunning()
+}
+
+func (adapter *HyprsunsetAdapter) ApplyValue(nightlight *nightlight.Nightlight) error {
 	return execHyprsunsetTemperature(nightlight)
 }
 
@@ -66,7 +70,11 @@ func execHyprsunsetTemperature(nightlight *nightlight.Nightlight) error {
 	return exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(nightlight.GetCurrentValue())).Start()
 }
 
-func (h *HyprsunsetAdapter) GetCurrentNightlight() (*nightlight.Nightlight, error) {
+func (adapter *HyprsunsetAdapter) GetCurrentNightlight() (*nightlight.Nightlight, error) {
+	if !adapter.IsAvailable() {
+		return nil, &nightlight.ErrNightlightAdapterUnavailable{Adapter: "Hyprsunset"}
+	}
+
 	cmd := exec.Command("bash", "-c", "hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+'")
 	out, err := cmd.Output()
 	if err != nil {
