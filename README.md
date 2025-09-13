@@ -10,7 +10,7 @@ I also made a simple ctl that starts Hyprsunset with the last saved value.
 If you want to use it at startup as I do, build it then add to your Hyprland config file:
 
 ```console
-exec-once tuilctl --night
+exec-once tuilctl toggle last
 ```
 
 ![image](https://github.com/user-attachments/assets/5bcd5691-a947-47fe-86e0-cfa7ffe73c9e)
@@ -45,11 +45,12 @@ sudo mv tuilctl /usr/local/bin/
 
 ## tuilctl Usage
 
-- `tuilctl --night`  
-  Applies the last saved nightlight temperature and starts `hyprsunset` if it’s not running.
-
-- `tuilctl --light`  
-  Sets the light temperature to 6000K (turns off nightlight).
+- `tuilctl toggle night`  
+  Applies the last saved nightlight temperature.
+- `tuilctl toggle light`  
+  Applies the light temperature to 6000K (turns off nightlight).
+- `tuilctl toggle last`
+  Applies the last saved temperature (night or light).
 
 ## 🛠️ TODO
 
@@ -58,4 +59,3 @@ sudo mv tuilctl /usr/local/bin/
 - [ ] Apply rollback on process kill or close without save
 - [ ] Improve min/max value handling
 - [ ] Add to the AUR - I use Arch, btw
-- [ ] Toggle On/Off nightlight
