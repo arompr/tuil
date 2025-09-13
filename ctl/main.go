@@ -52,6 +52,7 @@ type Controller struct {
 	saveNightlightUseCase          *usecase.SaveUseCase
 	applyTemperatureUseCase        *usecase.ApplyTemperatureUseCase
 	getNightlightPercentageUseCase *usecase.GetNightlightPercentageUseCase
+	turnOffNightlightUseCase       *usecase.TurnOffNightlightUseCase
 	startNightlightServices        *startup.StartNightlightServices
 }
 
@@ -78,13 +79,34 @@ func initCtl() (*Controller, error) {
 		usecase.NewSaveUseCase(cachePersister),
 		usecase.NewApplyTemperatureUseCase(nightlightStore, hyprsunsetAdapter),
 		usecase.NewGetNightlightPercentageUseCase(nightlightStore),
+		usecase.NewTurnOffNightlightUseCase(nightlightStore),
 		startup.NewStartNightlightServices(hyprsunsetAdapter, nightlightStore),
 	}, nil
 }
 
 func (c *Controller) RunApplyNightTemperature() error {
-	err := c.startNightlightServices.Exec()
+	nightlight, err := c.nightlightStore.Fetch()
 	if err != nil {
+		return err
+	}
+
+	nightlight.TurnOn()
+
+	if err := c.nightlightStore.Save(nightlight); err != nil {
+		return fmt.Errorf("failed to turn off light temperature: %w", err)
+	}
+
+	if err := c.saveNightlightUseCase.Exec(); err != nil {
+		return fmt.Errorf("failed to persist: %w", err)
+	}
+
+	// start the adapter if needed
+	if err := c.nightlightAdapter.Start(nightlight.GetCurrentValue()); err != nil {
+		return err
+	}
+
+	// ensure system has correct value applied
+	if err := c.nightlightAdapter.ApplyNightlight(nightlight); err != nil {
 		return err
 	}
 
@@ -99,14 +121,25 @@ func (c *Controller) RunApplyNightTemperature() error {
 
 // RunApplyLightTemperature applies a light temperature and persists it
 func (c *Controller) RunApplyLightTemperature(temp int) error {
-	if err := c.applyTemperatureUseCase.Exec(temp); err != nil {
+	nightlight, err := c.nightlightStore.Fetch()
+	if err != nil {
+		return err
+	}
+
+	nightlight.TurnOff()
+
+	if err := c.nightlightAdapter.ApplValue(nightlight.GetMin()); err != nil {
 		return fmt.Errorf("failed to apply light temperature: %w", err)
 	}
 
-	if err := c.saveNightlightUseCase.Exec(); err != nil {
-		return fmt.Errorf("failed to persist light temperature: %w", err)
+	if err := c.nightlightStore.Save(nightlight); err != nil {
+		return fmt.Errorf("failed to turn off light temperature: %w", err)
 	}
 
-	fmt.Printf("Light temperature applied and persisted (%dK).\n", temp)
+	if err := c.saveNightlightUseCase.Exec(); err != nil {
+		return fmt.Errorf("failed to persist: %w", err)
+	}
+
+	fmt.Printf("Nightlight turned off (%dK).\n", temp)
 	return nil
 }

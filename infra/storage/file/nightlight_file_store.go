@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 )
 
 type NightlightState struct {
@@ -36,14 +36,14 @@ func (f *FileNightlightStore) initFileStore() error {
 	if _, err := os.Stat(f.path); os.IsNotExist(err) {
 		defaultState := NightlightState{
 			Enabled:     true,
-			Temperature: nightlight.MinTemperature,
+			Temperature: nl.MinTemperature,
 		}
 		return f.writeState(defaultState)
 	}
 	return nil
 }
 
-func (f *FileNightlightStore) Fetch() (*nightlight.Nightlight, error) {
+func (f *FileNightlightStore) Fetch() (*nl.Nightlight, error) {
 	state, err := f.readState()
 	if err != nil {
 		return nil, fmt.Errorf("error fetching night light: %w", err)
@@ -52,19 +52,20 @@ func (f *FileNightlightStore) Fetch() (*nightlight.Nightlight, error) {
 	return toNightLight(state), nil
 }
 
-func toNightLight(state NightlightState) *nightlight.Nightlight {
+func toNightLight(state NightlightState) *nl.Nightlight {
 	temp := state.Temperature
-	isEnabled := state.Enabled
-	return nightlight.CreateNewNightLight(temp, nightlight.WithEnabled(isEnabled))
+	// isEnabled := state.Enabled
+	return nl.CreateNewNightlight(temp)
 }
 
-func (f *FileNightlightStore) Save(nightlight *nightlight.Nightlight) error {
+func (f *FileNightlightStore) Save(nightlight *nl.Nightlight) error {
 	state, err := f.readState()
 	if err != nil {
 		return err
 	}
 
 	state.Temperature = nightlight.GetCurrentValue()
+	state.Enabled = nightlight.IsEnabled()
 	return f.writeState(state)
 }
 
@@ -77,7 +78,7 @@ func (f *FileNightlightStore) readState() (NightlightState, error) {
 	var state NightlightState
 	if err := json.Unmarshal(data, &state); err != nil {
 		// Reset if corrupted
-		state = NightlightState{Enabled: true, Temperature: nightlight.MinTemperature}
+		state = NightlightState{Enabled: true, Temperature: nl.MinTemperature}
 		_ = f.writeState(state)
 	}
 	return state, nil

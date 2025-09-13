@@ -2,25 +2,25 @@ package usecase
 
 import (
 	"lighttui/domain/adjustable"
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 )
 
 type AdjustNightlightUseCase struct {
-	nightlightStore nightlight.INightlightStore
-	adapter         nightlight.INightlightAdapter
+	nightlightStore nl.INightlightStore
+	adapter         nl.INightlightAdapter
 	adjust          func(adjustable.IAdjustable, float64)
 }
 
 func NewDecreaseNightlightUseCase(
-	nightlightStore nightlight.INightlightStore,
-	adapter nightlight.INightlightAdapter,
+	nightlightStore nl.INightlightStore,
+	adapter nl.INightlightAdapter,
 ) *AdjustNightlightUseCase {
 	return &AdjustNightlightUseCase{nightlightStore, adapter, decrease}
 }
 
 func NewIncreaseNightlightUseCase(
-	nightlightStore nightlight.INightlightStore,
-	adapter nightlight.INightlightAdapter,
+	nightlightStore nl.INightlightStore,
+	adapter nl.INightlightAdapter,
 ) *AdjustNightlightUseCase {
 	return &AdjustNightlightUseCase{nightlightStore, adapter, increase}
 }
@@ -33,7 +33,7 @@ func (usecase *AdjustNightlightUseCase) Exec(percentage float64) error {
 
 	usecase.adjust(nightlight, percentage)
 
-	if err := usecase.adapter.ApplyValue(nightlight); err != nil {
+	if err := usecase.adapter.ApplyNightlight(nightlight); err != nil {
 		return err
 	}
 

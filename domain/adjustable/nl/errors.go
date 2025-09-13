@@ -1,4 +1,4 @@
-package nightlight
+package nl
 
 import "fmt"
 

@@ -1,21 +1,21 @@
 package in_memory_storage
 
 import (
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 )
 
 type InMemoryNightlightStore struct {
-	nightlight *nightlight.Nightlight
+	nightlight *nl.Nightlight
 }
 
 func NewInMemoryNightlightStore() *InMemoryNightlightStore {
 	return &InMemoryNightlightStore{nil}
 }
 
-func (store *InMemoryNightlightStore) Fetch() *nightlight.Nightlight {
+func (store *InMemoryNightlightStore) Fetch() *nl.Nightlight {
 	return store.nightlight
 }
 
-func (store *InMemoryNightlightStore) Save(nightlight *nightlight.Nightlight) {
+func (store *InMemoryNightlightStore) Save(nightlight *nl.Nightlight) {
 	store.nightlight = nightlight
 }

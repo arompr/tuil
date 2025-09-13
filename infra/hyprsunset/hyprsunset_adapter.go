@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 )
 
 type HyprsunsetAdapter struct{}
@@ -17,7 +17,7 @@ func NewHyprsunsetAdapter() *HyprsunsetAdapter {
 
 func (adapter *HyprsunsetAdapter) Start(initialValue int) error {
 	if !adapter.IsAvailable() {
-		return &nightlight.ErrNightlightAdapterUnavailable{Adapter: "HyprsunsetAdapter"}
+		return &nl.ErrNightlightAdapterUnavailable{Adapter: "HyprsunsetAdapter"}
 	}
 
 	if isHyprsunsetRunning() {
@@ -31,8 +31,12 @@ func (adapter *HyprsunsetAdapter) IsAvailable() bool {
 	return isHyprlandRunning()
 }
 
-func (adapter *HyprsunsetAdapter) ApplyValue(nightlight *nightlight.Nightlight) error {
-	return execHyprsunsetTemperature(nightlight)
+func (adapter *HyprsunsetAdapter) ApplyNightlight(nightlight *nl.Nightlight) error {
+	return execHyprsunsetTemperature(nightlight.GetCurrentValue())
+}
+
+func (adapter *HyprsunsetAdapter) ApplValue(value int) error {
+	return execHyprsunsetTemperature(value)
 }
 
 func isHyprsunsetRunning() bool {
@@ -66,13 +70,13 @@ func isHyprlandRunning() bool {
 	return true
 }
 
-func execHyprsunsetTemperature(nightlight *nightlight.Nightlight) error {
-	return exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(nightlight.GetCurrentValue())).Start()
+func execHyprsunsetTemperature(value int) error {
+	return exec.Command("hyprctl", "hyprsunset", "temperature", strconv.Itoa(value)).Start()
 }
 
-func (adapter *HyprsunsetAdapter) GetCurrentNightlight() (*nightlight.Nightlight, error) {
+func (adapter *HyprsunsetAdapter) GetCurrentNightlight() (*nl.Nightlight, error) {
 	if !adapter.IsAvailable() {
-		return nil, &nightlight.ErrNightlightAdapterUnavailable{Adapter: "Hyprsunset"}
+		return nil, &nl.ErrNightlightAdapterUnavailable{Adapter: "Hyprsunset"}
 	}
 
 	cmd := exec.Command("bash", "-c", "hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+'")
@@ -88,5 +92,5 @@ func (adapter *HyprsunsetAdapter) GetCurrentNightlight() (*nightlight.Nightlight
 		return nil, err
 	}
 
-	return nightlight.CreateNewNightLight(value), nil
+	return nl.CreateNewNightlight(value), nil
 }

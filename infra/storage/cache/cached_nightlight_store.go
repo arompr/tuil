@@ -1,7 +1,7 @@
 package cached_storage
 
 import (
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 	file_storage "lighttui/infra/storage/file"
 	in_memory_storage "lighttui/infra/storage/in_memory"
 )
@@ -18,7 +18,7 @@ func NewCachedNightlightStore(
 	return &CachedNightlightStore{inMemoryNightlightStore, persistentStore}
 }
 
-func (store *CachedNightlightStore) Fetch() (*nightlight.Nightlight, error) {
+func (store *CachedNightlightStore) Fetch() (*nl.Nightlight, error) {
 	inMemoryNightlight := store.inMemoryNightlightStore.Fetch()
 	if inMemoryNightlight != nil {
 		return inMemoryNightlight, nil
@@ -33,7 +33,7 @@ func (store *CachedNightlightStore) Fetch() (*nightlight.Nightlight, error) {
 	return persistedNightlight, nil
 }
 
-func (store *CachedNightlightStore) Save(nightlight *nightlight.Nightlight) error {
+func (store *CachedNightlightStore) Save(nightlight *nl.Nightlight) error {
 	store.inMemoryNightlightStore.Save(nightlight)
 	return nil
 }

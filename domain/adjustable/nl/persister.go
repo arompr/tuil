@@ -1,4 +1,4 @@
-package nightlight
+package nl
 
 type IPersister interface {
 	Persist() error

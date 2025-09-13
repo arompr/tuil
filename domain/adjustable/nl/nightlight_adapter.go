@@ -1,8 +1,8 @@
-package nightlight
+package nl
 
 type INightlightAdapter interface {
 	IsAvailable() bool
 	Start(value int) error
-	ApplyValue(*Nightlight) error
+	ApplyNightlight(*Nightlight) error
 	GetCurrentNightlight() (*Nightlight, error)
 }

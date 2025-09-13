@@ -1,4 +1,4 @@
-package nightlight
+package nl
 
 import (
 	"testing"
@@ -35,7 +35,7 @@ func TestNightLight_Increase(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			nl := CreateNewNightLight(tt.initialTemp)
+			nl := CreateNewNightlight(tt.initialTemp)
 			nl.Increase(tt.percentage)
 			assert.Equal(t, tt.expectedTemperature, nl.GetCurrentValue())
 		})
@@ -77,7 +77,7 @@ func TestNightLight_Decrease(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			nl := CreateNewNightLight(tt.initialTemp)
+			nl := CreateNewNightlight(tt.initialTemp)
 			nl.Decrease(tt.percentage)
 			assert.Equal(t, tt.expectedTemperature, nl.GetCurrentValue())
 		})

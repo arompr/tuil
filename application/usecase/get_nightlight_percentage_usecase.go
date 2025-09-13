@@ -1,14 +1,14 @@
 package usecase
 
 import (
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 )
 
 type GetNightlightPercentageUseCase struct {
-	store nightlight.INightlightStore
+	store nl.INightlightStore
 }
 
-func NewGetNightlightPercentageUseCase(store nightlight.INightlightStore) *GetNightlightPercentageUseCase {
+func NewGetNightlightPercentageUseCase(store nl.INightlightStore) *GetNightlightPercentageUseCase {
 	return &GetNightlightPercentageUseCase{store}
 }
 

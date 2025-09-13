@@ -1,17 +1,17 @@
 package usecase
 
 import (
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 )
 
 type ApplyTemperatureUseCase struct {
-	nightlightStore   nightlight.INightlightStore
-	nightlightAdapter nightlight.INightlightAdapter
+	nightlightStore   nl.INightlightStore
+	nightlightAdapter nl.INightlightAdapter
 }
 
 func NewApplyTemperatureUseCase(
-	nightlightStore nightlight.INightlightStore,
-	nightlightAdapter nightlight.INightlightAdapter,
+	nightlightStore nl.INightlightStore,
+	nightlightAdapter nl.INightlightAdapter,
 ) *ApplyTemperatureUseCase {
 	return &ApplyTemperatureUseCase{nightlightStore, nightlightAdapter}
 }
@@ -24,7 +24,7 @@ func (usecase *ApplyTemperatureUseCase) Exec(value int) error {
 
 	nightlight.ApplyValue(value)
 
-	if err := usecase.nightlightAdapter.ApplyValue(nightlight); err != nil {
+	if err := usecase.nightlightAdapter.ApplyNightlight(nightlight); err != nil {
 		return err
 	}
 

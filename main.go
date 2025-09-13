@@ -9,7 +9,7 @@ import (
 	"lighttui/application/startup"
 	"lighttui/application/usecase"
 	"lighttui/domain/adjustable/brightness"
-	"lighttui/domain/adjustable/nightlight"
+	"lighttui/domain/adjustable/nl"
 	"lighttui/infra/brightnessctl"
 	"lighttui/infra/hyprsunset"
 	cached_storage "lighttui/infra/storage/cache"
@@ -79,7 +79,7 @@ func initTuil() (*tea.Program, error) {
 
 	err = startNightlightServices.Exec()
 	if err != nil {
-		var unavailable *nightlight.ErrNightlightAdapterUnavailable
+		var unavailable *nl.ErrNightlightAdapterUnavailable
 		if errors.As(err, &unavailable) {
 			fmt.Println("Nightlight adapter unavailable, skipping Nightlight")
 		} else {
