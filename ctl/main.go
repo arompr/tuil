@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,34 +14,37 @@ import (
 )
 
 func main() {
-	showNight := flag.Bool("night", false, "Show current night light temperature")
-	applyLight := flag.Bool("light", false, "Apply light temperature (6000K)")
-	flag.Parse()
-
-	if !*showNight && !*applyLight {
-		flag.Usage()
-		return
-	}
-
 	ctl, err := initCtl()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Select and run the correct function
-	if *showNight {
+	if len(os.Args) < 3 || os.Args[1] != "toggle" {
+		fmt.Println("Usage: tuilctl toggle [night|light|last]")
+		os.Exit(1)
+	}
+
+	sub := os.Args[2]
+	switch sub {
+	case "night":
 		if err := ctl.RunApplyNightTemperature(); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
-	}
-
-	if *applyLight {
-		if err := ctl.RunApplyLightTemperature(6000); err != nil {
+	case "light":
+		if err := ctl.RunApplyLightTemperature(); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
+	case "last":
+		if err := ctl.RunStart(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	default:
+		fmt.Println("Unknown option:", sub)
+		os.Exit(1)
 	}
 }
 
@@ -84,6 +86,14 @@ func initCtl() (*Controller, error) {
 	}, nil
 }
 
+func (c *Controller) RunStart() error {
+	if err := c.startNightlightServices.Exec(); err != nil {
+		return fmt.Errorf("failed to start night light services: %w", err)
+	}
+
+	return nil
+}
+
 func (c *Controller) RunApplyNightTemperature() error {
 	nightlight, err := c.nightlightStore.Fetch()
 	if err != nil {
@@ -120,7 +130,7 @@ func (c *Controller) RunApplyNightTemperature() error {
 }
 
 // RunApplyLightTemperature applies a light temperature and persists it
-func (c *Controller) RunApplyLightTemperature(temp int) error {
+func (c *Controller) RunApplyLightTemperature() error {
 	nightlight, err := c.nightlightStore.Fetch()
 	if err != nil {
 		return err
@@ -140,6 +150,6 @@ func (c *Controller) RunApplyLightTemperature(temp int) error {
 		return fmt.Errorf("failed to persist: %w", err)
 	}
 
-	fmt.Printf("Nightlight turned off (%dK).\n", temp)
+	fmt.Printf("Nightlight turned off (%dK).\n", nightlight.GetMin())
 	return nil
 }
