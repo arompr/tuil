@@ -54,31 +54,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// TODO : Add error handling to persist
 			m.persist.Exec()
 			return m, tea.Quit
-		case "j":
+		case "j", "down":
 			if m.listModel.isLastItemFocused() {
 				m.listModel.list.CursorUp()
 			} else {
 				m.listModel.list.CursorDown()
 			}
-		case "k":
+		case "k", "up":
 			if m.listModel.isFirstItemFocused() {
 				m.listModel.list.CursorDown()
 			} else {
 				m.listModel.list.CursorUp()
 			}
-		case "l":
+		case "l", "right":
 			if ok {
 				item.Increase(0.01)
 			}
-		case "L":
+		case "L", "shift+right":
 			if ok {
 				item.Increase(0.1)
 			}
-		case "h":
+		case "h", "left":
 			if ok {
 				item.Decrease(0.01)
 			}
-		case "H":
+		case "H", "shift+left":
 			if ok {
 				item.Decrease(0.1)
 			}
