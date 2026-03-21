@@ -14,28 +14,28 @@ type KeyMap = struct {
 func newKeyMap() KeyMap {
 	return KeyMap{
 		Up: key.NewBinding(
-			key.WithKeys("k"),
-			key.WithHelp("k", "Up"),
+			key.WithKeys("k", "up"),
+			key.WithHelp("k/↑", "Up"),
 		),
 		Down: key.NewBinding(
-			key.WithKeys("j"),
-			key.WithHelp("j", "Down"),
+			key.WithKeys("j", "down"),
+			key.WithHelp("j/↓", "Down"),
 		),
 		Increase: key.NewBinding(
-			key.WithKeys("l"),
-			key.WithHelp("l", "Increase"),
+			key.WithKeys("l", "right"),
+			key.WithHelp("l/→", "Increase"),
 		),
 		Decrease: key.NewBinding(
-			key.WithKeys("h"),
-			key.WithHelp("h", "Decrease"),
+			key.WithKeys("h", "left"),
+			key.WithHelp("h/←", "Decrease"),
 		),
 		IncreaseMore: key.NewBinding(
-			key.WithKeys("<S-l>"),
-			key.WithHelp("<S-l>", "Increase more"),
+			key.WithKeys("L", "shift+right"),
+			key.WithHelp("L/shift+→", "Increase more"),
 		),
 		DecreaseMore: key.NewBinding(
-			key.WithKeys("<S-h>"),
-			key.WithHelp("<S-h>", "Decrease more"),
+			key.WithKeys("H", "shift+left"),
+			key.WithHelp("H/shift+←", "Decrease more"),
 		),
 	}
 }
